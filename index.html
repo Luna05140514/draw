@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小小畫家 · 著色遊戲</title>
+<style>
+:root{
+  --bg:#e6efff; --panel:#ffffff; --ink:#2a3560; --muted:#6c77a8; --line:#d3def7;
+  --accent:#3d6bff; --accent-soft:#e3eaff; --accent-ink:#ffffff; --shadow:rgba(61,107,255,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161a30; --panel:#232848; --ink:#eef1ff; --muted:#a4aedd; --line:#39406b;
+    --accent:#7a9bff; --accent-soft:#33396a; --accent-ink:#131735; --shadow:rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161a30; --panel:#232848; --ink:#eef1ff; --muted:#a4aedd; --line:#39406b;
+  --accent:#7a9bff; --accent-soft:#33396a; --accent-ink:#131735; --shadow:rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Yuanti TC","PingFang TC","Hiragino Sans CNS","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+header{max-width:1400px;margin:0 auto;padding:18px 22px 10px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{margin:0;font-size:28px;letter-spacing:.04em}
+header p{margin:0;color:var(--muted);font-size:15px}
+
+.layout{
+  display:grid;grid-template-columns:272px minmax(0,1fr) 236px;gap:18px;
+  max-width:1400px;margin:0 auto;padding:6px 22px 30px;align-items:start;
+}
+.panel{
+  background:var(--panel);border-radius:22px;padding:16px;
+  box-shadow:0 5px 0 var(--shadow);
+}
+.panel h2{margin:0 0 10px;font-size:16px;color:var(--muted);font-weight:600}
+.panel section+section{margin-top:18px}
+
+/* tools */
+.tools-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tool{
+  border:3px solid var(--line);background:var(--panel);border-radius:16px;
+  padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px;
+}
+.tool .ico{font-size:26px;line-height:1.1}
+.tool:hover{border-color:var(--accent)}
+.tool[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.tool:focus-visible,.crayon:focus-visible,.thumb:focus-visible,.act:focus-visible,.brush:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* brush kinds (solid / gradient / stamp) */
+.brush-group+.brush-group{margin-top:12px}
+.brush-cap{margin:0 0 6px 2px;font-size:13px;color:var(--muted)}
+.brushes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;transition:opacity .15s}
+.brush-sec.off .brushes{opacity:.5}
+.brush{
+  border:3px solid var(--line);background:var(--panel);border-radius:14px;
+  padding:6px 2px 5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;
+}
+.brush:hover{border-color:var(--accent)}
+.brush[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.brush .swatch{display:block;width:36px;height:22px;border-radius:11px;background:var(--sw);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14)}
+.stampico{fill:var(--cur);stroke:var(--cur);stroke-width:.12;stroke-linejoin:round;filter:drop-shadow(0 0 .6px rgba(0,0,0,.6))}
+.brush .stampico{width:26px;height:22px;display:block}
+
+.size-row{display:flex;align-items:center;gap:12px}
+.size-row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+.size-preview{width:52px;height:52px;flex:none;display:grid;place-items:center;background:var(--accent-soft);border-radius:14px}
+.size-preview i{display:block;border-radius:50%;background:#ff5c8a;width:16px;height:16px}
+.size-preview .stampico{display:none}
+
+/* crayon box */
+.crayons{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 6px;padding-top:8px}
+.crayon{
+  position:relative;border:0;padding:0;height:60px;background:var(--c);
+  border-radius:16px 16px 5px 5px / 30px 30px 5px 5px;
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.14);
+  transition:transform .12s;
+}
+.crayon::after{ /* paper wrapper band */
+  content:"";position:absolute;left:0;right:0;top:46%;height:26%;
+  background:rgba(255,255,255,.42);border-top:2px solid rgba(0,0,0,.12);border-bottom:2px solid rgba(0,0,0,.12);
+}
+.crayon:hover{transform:translateY(-3px)}
+.crayon[aria-pressed="true"]{transform:translateY(-9px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14),0 0 0 3px var(--accent)}
+.custom{margin-top:14px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.custom input{width:46px;height:34px;padding:0;border:3px solid var(--line);border-radius:10px;background:none;cursor:pointer}
+
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.act{border:3px solid var(--line);background:var(--panel);border-radius:14px;padding:9px 6px;font-size:15px}
+.act:hover:not(:disabled){border-color:var(--accent)}
+.act:disabled{opacity:.4;cursor:default}
+
+/* stage */
+.stagewrap{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.stage{
+  position:relative;width:min(100%,calc(100vh - 140px));min-width:280px;aspect-ratio:1;
+  background:#fff;border-radius:24px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 0 0 6px var(--panel),0 10px 0 6px var(--shadow);
+}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#lines{pointer-events:none}
+.ring{
+  position:absolute;left:0;top:0;border-radius:50%;pointer-events:none;display:none;
+  border:2px solid #2a3560;box-shadow:0 0 0 1.5px #fff;
+}
+.hint{color:var(--muted);font-size:15px;min-height:22px;text-align:center}
+
+/* gallery */
+.gallery{max-height:calc(100vh - 100px);overflow:auto;position:sticky;top:12px}
+.thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.thumb{
+  border:3px solid var(--line);background:#fff;border-radius:16px;padding:4px 4px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:#2a3560;font-size:13px;
+}
+.thumb canvas{width:100%;aspect-ratio:1;display:block}
+.thumb:hover{border-color:var(--accent)}
+.thumb[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+@media (max-width:1040px){
+  .layout{grid-template-columns:1fr}
+  .gallery{order:1;position:static;max-height:none;overflow:visible}
+  .thumbs{display:flex;overflow-x:auto;padding-bottom:6px}
+  .thumb{flex:0 0 104px}
+  .stagewrap{order:2}
+  .tools{order:3}
+  .stage{width:100%}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎨 小小畫家</h1>
+  <p>挑一張圖，選一支蠟筆，開始上色！</p>
+</header>
+
+<main class="layout">
+  <aside class="panel tools">
+    <section>
+      <h2>工具</h2>
+      <div class="tools-row">
+        <button class="tool" data-tool="pen" aria-pressed="true"><span class="ico">🖍️</span>彩色筆</button>
+        <button class="tool" data-tool="eraser" aria-pressed="false"><span class="ico">🧽</span>橡皮擦</button>
+        <button class="tool" data-tool="fill" aria-pressed="false"><span class="ico">🪣</span>油漆桶</button>
+      </div>
+    </section>
+    <section class="brush-sec" id="brushSec">
+      <h2>筆刷種類</h2>
+      <div class="brush-group">
+        <div class="brush-cap">線條顏色</div>
+        <div class="brushes" id="colorBrushes"></div>
+      </div>
+      <div class="brush-group">
+        <div class="brush-cap">印章筆</div>
+        <div class="brushes" id="stampBrushes"></div>
+      </div>
+    </section>
+    <section>
+      <h2>粗細 · 印章大小</h2>
+      <div class="size-row">
+        <input id="size" type="range" min="6" max="90" value="20" aria-label="筆的粗細（印章筆時是印章大小）">
+        <div class="size-preview"><i id="sizeDot"></i><svg id="sizeStamp" class="stampico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true"><path id="sizeStampPath" d=""/></svg></div>
+      </div>
+    </section>
+    <section>
+      <h2>蠟筆盒</h2>
+      <div class="crayons" id="crayons"></div>
+      <label class="custom">自己調顏色
+        <input type="color" id="custom" value="#ff5c8a" aria-label="自訂顏色">
+      </label>
+    </section>
+    <section>
+      <div class="acts">
+        <button class="act" id="undo" disabled>↩️ 復原</button>
+        <button class="act" id="clear">🗑️ 全部擦掉</button>
+      </div>
+    </section>
+  </aside>
+
+  <section class="stagewrap">
+    <div class="stage" id="stage">
+      <canvas id="paint"></canvas>
+      <canvas id="lines"></canvas>
+      <div class="ring" id="ring"></div>
+    </div>
+    <div class="hint" id="hint"></div>
+  </section>
+
+  <aside class="panel gallery">
+    <h2>選一張圖</h2>
+    <div class="thumbs" id="thumbs"></div>
+  </aside>
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const N = 1000;                       // internal canvas resolution
+const $ = s => document.querySelector(s);
+
+/* ---------- drawing helpers (coordinates are 0–100) ---------- */
+const E = (cx, cy, rx, ry, rot = 0) => { const p = new Path2D(); p.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2); return p; };
+const C = (cx, cy, r) => E(cx, cy, r, r);
+const P = d => new Path2D(d);
+const star = (cx, cy, R, r = R * 0.45) => {
+  let d = '';
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, rad = i % 2 ? r : R;
+    d += (i ? 'L' : 'M') + (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cy + rad * Math.sin(a)).toFixed(2);
+  }
+  return P(d + 'Z');
+};
+
+function toolkit(ctx, size, lw) {
+  const s = size / 100, INK = '#4a3040';
+  return {
+    begin() {
+      ctx.save(); ctx.setTransform(s, 0, 0, s, 0, 0);
+      ctx.lineWidth = lw; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = INK; ctx.fillStyle = INK;
+    },
+    end() { ctx.restore(); },
+    // closed shape: hides whatever is behind it, then outlines it
+    shape(p) {
+      ctx.globalCompositeOperation = 'destination-out'; ctx.fill(p);
+      ctx.globalCompositeOperation = 'source-over'; ctx.stroke(p);
+    },
+    line(p) { ctx.stroke(p); },
+    dot(x, y, rx, ry) { ctx.fill(E(x, y, rx, ry === undefined ? rx : ry)); },
+    // several overlapping shapes drawn as one outline (clouds)
+    group(ps) {
+      ctx.lineWidth = lw * 2; ps.forEach(p => ctx.stroke(p));
+      ctx.lineWidth = lw;
+      ctx.globalCompositeOperation = 'destination-out'; ps.forEach(p => ctx.fill(p));
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  };
+}
+
+/* ---------- pictures ---------- */
+const PICS = [
+  { id: 'cat', name: '小貓', draw(g) {
+    g.shape(P('M70 86C95 90 98 62 84 54C81 59 88 70 68 76Z'));
+    g.shape(E(50, 78, 22, 17));
+    g.shape(E(38, 93, 8, 4)); g.shape(E(62, 93, 8, 4));
+    g.shape(P('M21 38L25 10L46 26Z')); g.shape(P('M79 38L75 10L54 26Z'));
+    g.shape(P('M27 30L28 19L38 26Z')); g.shape(P('M73 30L72 19L62 26Z'));
+    g.shape(E(50, 48, 31, 26));
+    g.dot(38, 46, 3); g.dot(62, 46, 3);
+    g.dot(50, 54, 2.4, 1.8);
+    g.line(P('M50 56Q50 61 44 60')); g.line(P('M50 56Q50 61 56 60'));
+    g.line(P('M27 52L13 49')); g.line(P('M27 56L13 57'));
+    g.line(P('M73 52L87 49')); g.line(P('M73 56L87 57'));
+    g.shape(E(35, 57, 4, 3)); g.shape(E(65, 57, 4, 3));
+  }},
+  { id: 'dog', name: '小狗', draw(g) {
+    g.shape(P('M70 80Q90 72 87 56Q80 63 73 72Z'));
+    g.shape(E(50, 82, 21, 15));
+    g.shape(E(40, 95, 8, 3.6)); g.shape(E(60, 95, 8, 3.6));
+    g.shape(E(50, 46, 27, 24));
+    g.shape(E(22, 40, 8, 17, 0.3)); g.shape(E(78, 40, 8, 17, -0.3));
+    g.shape(E(50, 56, 13, 10));
+    g.shape(E(63, 40, 7, 6));
+    g.dot(39, 40, 2.8); g.dot(63, 40, 2.8);
+    g.dot(50, 51, 4, 3);
+    g.shape(P('M46 62L54 62Q54 71 50 71Q46 71 46 62Z'));
+    g.line(P('M50 54L50 59')); g.line(P('M50 59Q45 64 41 60')); g.line(P('M50 59Q55 64 59 60'));
+  }},
+  { id: 'bunny', name: '兔兔', draw(g) {
+    g.shape(C(76, 88, 5));
+    g.shape(E(50, 80, 20, 15));
+    g.shape(E(50, 84, 11, 8));
+    g.shape(E(37, 22, 8, 19, -0.12)); g.shape(E(37, 22, 4, 12, -0.12));
+    g.shape(E(63, 22, 8, 19, 0.12));  g.shape(E(63, 22, 4, 12, 0.12));
+    g.shape(E(40, 94, 8, 3.6)); g.shape(E(60, 94, 8, 3.6));
+    g.shape(E(50, 54, 25, 22));
+    g.dot(40, 52, 2.8); g.dot(60, 52, 2.8);
+    g.dot(50, 58, 2.2, 1.7);
+    g.line(P('M50 60L50 63')); g.line(P('M50 63Q46 67 43 64')); g.line(P('M50 63Q54 67 57 64'));
+    g.shape(E(33, 60, 4, 3)); g.shape(E(67, 60, 4, 3));
+  }},
+  { id: 'bear', name: '小熊', draw(g) {
+    g.shape(E(50, 82, 24, 15));
+    g.shape(E(50, 84, 13, 9));
+    g.shape(E(36, 96, 8, 3.6)); g.shape(E(64, 96, 8, 3.6));
+    g.shape(C(25, 28, 10)); g.shape(C(75, 28, 10));
+    g.shape(C(25, 28, 5));  g.shape(C(75, 28, 5));
+    g.shape(C(50, 50, 28));
+    g.shape(E(50, 58, 12, 9));
+    g.dot(38, 46, 3); g.dot(62, 46, 3);
+    g.dot(50, 54, 4.5, 3);
+    g.line(P('M50 57L50 61')); g.line(P('M50 61Q46 65 43 62')); g.line(P('M50 61Q54 65 57 62'));
+    g.shape(E(29, 58, 4.5, 3)); g.shape(E(71, 58, 4.5, 3));
+  }},
+  { id: 'fish', name: '小魚', draw(g) {
+    g.shape(P('M72 50L94 30Q90 50 94 70Z'));
+    g.shape(P('M34 34Q48 12 62 32Z'));
+    g.shape(P('M40 66Q52 86 62 67Z'));
+    g.shape(E(48, 50, 28, 20));
+    g.line(P('M40 36Q34 50 40 64'));
+    g.line(P('M54 38Q60 44 54 50')); g.line(P('M54 50Q60 56 54 62')); g.line(P('M64 44Q70 50 64 56'));
+    g.shape(C(30, 46, 4.5)); g.dot(30.6, 46, 2.2);
+    g.line(P('M21 55Q25 58 28 55'));
+    g.shape(C(13, 28, 3.2)); g.shape(C(8, 17, 2.2)); g.shape(C(15, 9, 1.6));
+    g.shape(P('M80 100Q72 90 80 82Q88 74 80 66L85 66Q93 74 85 82Q77 90 85 100Z'));
+  }},
+  { id: 'flower', name: '花朵', draw(g) {
+    g.shape(P('M47.5 45L52.5 45L52.5 97L47.5 97Z'));
+    g.shape(P('M52.5 80Q80 62 86 74Q76 92 52.5 86Z'));
+    g.shape(P('M47.5 70Q20 52 14 64Q24 82 47.5 76Z'));
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4;
+      g.shape(E(50 + 16 * Math.cos(a), 32 + 16 * Math.sin(a), 13, 7.5, a));
+    }
+    g.shape(C(50, 32, 9));
+    g.dot(46.5, 31, 1.4); g.dot(53.5, 31, 1.4);
+    g.line(P('M46.5 35Q50 38.5 53.5 35'));
+  }},
+  { id: 'butterfly', name: '蝴蝶', draw(g) {
+    g.shape(E(35, 68, 15, 13, -0.4)); g.shape(E(65, 68, 15, 13, 0.4));
+    g.shape(E(30, 36, 21, 16, 0.5));  g.shape(E(70, 36, 21, 16, -0.5));
+    g.shape(C(28, 36, 6)); g.shape(C(72, 36, 6)); g.shape(C(35, 68, 5)); g.shape(C(65, 68, 5));
+    g.shape(E(50, 52, 4.5, 27));
+    g.shape(C(50, 22, 5.5));
+    g.line(P('M48 18Q44 8 38 6')); g.line(P('M52 18Q56 8 62 6'));
+    g.dot(37.5, 5.5, 1.6); g.dot(62.5, 5.5, 1.6);
+    g.dot(48.3, 22, 1); g.dot(51.7, 22, 1);
+  }},
+  { id: 'icecream', name: '冰淇淋', draw(g) {
+    g.shape(P('M30 56L70 56L50 96Z'));
+    g.line(P('M40 56L60 76')); g.line(P('M50 56L63.3 69.3'));
+    g.line(P('M60 56L40 76')); g.line(P('M50 56L36.7 69.3'));
+    g.line(P('M33 62L55.7 84.7')); g.line(P('M67 62L44.3 84.7'));
+    g.shape(P('M26 58Q24 44 50 42Q76 44 74 58Q70 64 64 60Q58 66 52 60Q46 66 40 60Q34 64 26 58Z'));
+    g.shape(E(50, 34, 19, 16));
+    g.dot(43, 32, 1.7); g.dot(57, 32, 1.7);
+    g.line(P('M46 37Q50 41 54 37'));
+    g.line(P('M50 11Q52 5 59 4'));
+    g.shape(C(50, 15, 5));
+  }},
+  { id: 'house', name: '小房子', draw(g) {
+    g.shape(P('M64 24L74 24L74 46L64 46Z'));
+    g.shape(P('M20 50L80 50L80 95L20 95Z'));
+    g.shape(P('M10 52L50 18L90 52Z'));
+    g.shape(C(50, 38, 5.5));
+    g.line(P('M50 32.5L50 43.5')); g.line(P('M44.5 38L55.5 38'));
+    g.shape(P('M42 95L42 74Q42 64 50 64Q58 64 58 74L58 95Z')); g.dot(54, 82, 1.2);
+    g.shape(P('M25 60L38 60L38 73L25 73Z')); g.line(P('M31.5 60L31.5 73')); g.line(P('M25 66.5L38 66.5'));
+    g.shape(P('M62 60L75 60L75 73L62 73Z')); g.line(P('M68.5 60L68.5 73')); g.line(P('M62 66.5L75 66.5'));
+    g.line(P('M3 95L97 95'));
+    for (let i = 0; i < 8; i++) {
+      const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a);
+      g.line(P(`M${(14 + 9 * c).toFixed(2)} ${(14 + 9 * s).toFixed(2)}L${(14 + 12.5 * c).toFixed(2)} ${(14 + 12.5 * s).toFixed(2)}`));
+    }
+    g.shape(C(14, 14, 6));
+    g.dot(12.3, 13, .9); g.dot(15.7, 13, .9); g.line(P('M12 16Q14 18 16 16'));
+  }},
+  { id: 'rainbow', name: '彩虹', draw(g) {
+    const cx = 50, cy = 74, R = [44, 38, 32, 26, 20, 14];
+    for (let i = 0; i < R.length - 1; i++) {
+      const o = R[i], n = R[i + 1];
+      g.shape(P(`M${cx - o} ${cy}A${o} ${o} 0 0 1 ${cx + o} ${cy}L${cx + n} ${cy}A${n} ${n} 0 0 0 ${cx - n} ${cy}Z`));
+    }
+    const r = R[R.length - 1];
+    g.shape(P(`M${cx - r} ${cy}A${r} ${r} 0 0 1 ${cx + r} ${cy}Z`));
+    const cloud = x => g.group([C(x, 80, 7), C(x + 9, 75, 9), C(x + 18, 80, 7), P(`M${x} 80L${x + 18} 80L${x + 18} 87L${x} 87Z`)]);
+    cloud(12); cloud(70);
+    g.dot(18.5, 81, 1.1); g.dot(23.5, 81, 1.1); g.line(P('M19.5 84Q21 85.5 22.5 84'));
+    g.dot(76.5, 81, 1.1); g.dot(81.5, 81, 1.1); g.line(P('M77.5 84Q79 85.5 80.5 84'));
+    g.shape(star(14, 20, 7)); g.shape(star(86, 18, 6)); g.shape(star(50, 13, 5));
+  }},
+  { id: 'blank', name: '空白畫布', draw() {} }
+];
+
+/* ---------- canvases ---------- */
+const paint = $('#paint'), lines = $('#lines'), stage = $('#stage'), ring = $('#ring');
+paint.width = paint.height = lines.width = lines.height = N;
+const lctx = lines.getContext('2d', { willReadFrequently: true });
+const pctx = paint.getContext('2d', { willReadFrequently: true });
+
+let barrier = new Uint8Array(N * N);   // 1 where an outline is
+let current = -1, dirty = false;
+const saved = new Map();               // id -> ImageData of unfinished work
+const undoStack = [];
+
+function loadPicture(i) {
+  if (current >= 0) {
+    const id = PICS[current].id;
+    if (dirty) saved.set(id, pctx.getImageData(0, 0, N, N)); else saved.delete(id);
+  }
+  current = i;
+  lctx.clearRect(0, 0, N, N);
+  const g = toolkit(lctx, N, 1.25);
+  g.begin(); PICS[i].draw(g); g.end();
+  const a = lctx.getImageData(0, 0, N, N).data;
+  for (let k = 0; k < N * N; k++) barrier[k] = a[k * 4 + 3] > 110 ? 1 : 0;
+  pctx.clearRect(0, 0, N, N);
+  const s = saved.get(PICS[i].id);
+  dirty = !!s;
+  if (s) pctx.putImageData(s, 0, 0);
+  undoStack.length = 0; syncUndo();
+  document.querySelectorAll('.thumb').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
+}
+
+/* ---------- state: tool / color / size ---------- */
+let tool = 'pen', color = '#ff6fb5', size = 20;
+let brush = 'solid';                   // 'solid' | gradient id | stamp id (used by pen and bucket)
+
+const COLORS = ['#ff4d4d','#ff8a3d','#ffc93c','#ffe86b','#b6e04a','#4cc76a',
+                '#1fa37a','#3cd6c4','#4fc3f7','#3d8bfd','#5b5bd6','#9b5de5',
+                '#d66bf5','#ff6fb5','#ff9ec4','#ffb3a7','#c68b59','#8d5a34',
+                '#5a3a22','#ffffff','#bdbdbd','#7a7a7a','#3a3a3a','#000000'];
+const crayons = $('#crayons');
+COLORS.forEach(c => {
+  const b = document.createElement('button');
+  b.className = 'crayon'; b.style.setProperty('--c', c);
+  b.setAttribute('aria-label', '顏色 ' + c); b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => setColor(c, true));
+  crayons.appendChild(b);
+});
+
+/* ---------- brush kinds: gradient pens + stamp pens ---------- */
+const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const GRADS = {
+  rainbow: { name: '彩虹', loop: true,  stops: ['#ff3b3b','#ff9a2e','#ffe14a','#4cd964','#2ec4f1','#4a6cff','#a259ff'] },
+  sunset:  { name: '日落', loop: false, stops: ['#ff5f6d','#ff8a4c','#ffc65c','#ff7eb3','#a463f2'] },
+  ocean:   { name: '海洋', loop: false, stops: ['#1b3fa0','#2a7de1','#35c4f0','#5be0c3','#9df0e0'] },
+  candy:   { name: '糖果', loop: false, stops: ['#ff6fb5','#b56bff','#5b8bff','#4fd6ff'] },
+  forest:  { name: '森林', loop: false, stops: ['#0f7a4a','#3fbf6a','#a6e05a','#e8e35a'] }
+};
+Object.values(GRADS).forEach(g => { g.rgb = g.stops.map(hex2rgb); g.css = 'linear-gradient(90deg,' + g.stops.join(',') + ')'; });
+const GRAD_PERIOD = 520;               // canvas px of stroke for one full colour cycle
+
+// colour at distance `dist` along a stroke; rainbow wraps around, the others ping-pong so they stay smooth
+function gradColor(g, dist) {
+  const n = g.rgb.length;
+  let t = ((dist / GRAD_PERIOD) % 1 + 1) % 1, f, i, j;
+  if (g.loop) { f = t * n; i = Math.floor(f) % n; j = (i + 1) % n; }
+  else { const u = t < 0.5 ? t * 2 : 2 - t * 2; f = u * (n - 1); i = Math.min(Math.floor(f), n - 2); j = i + 1; }
+  const k = f - Math.floor(f) , a = g.rgb[i], b = g.rgb[j];
+  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * k)},${Math.round(a[1] + (b[1] - a[1]) * k)},${Math.round(a[2] + (b[2] - a[2]) * k)})`;
+}
+
+// stamp shapes live in a unit box (about -0.9..0.9); the same path strings feed canvas Path2D and the SVG icons
+const polyD = pts => 'M' + pts.map(q => q[0].toFixed(3) + ' ' + q[1].toFixed(3)).join('L') + 'Z';
+const regular = (n, R, off = 0, dy = 0) => Array.from({ length: n }, (_, i) => {
+  const a = off + i * 2 * Math.PI / n; return [R * Math.cos(a), R * Math.sin(a) + dy];
+});
+const STAMPS = {
+  heart:    { name: '愛心',   d: 'M0 .88C-1.05 .12-.95 -.84-.48 -.84C-.2 -.84 0 -.62 0 -.4C0 -.62 .2 -.84 .48 -.84C.95 -.84 1.05 .12 0 .88Z' },
+  star:     { name: '星星',   d: polyD(Array.from({ length: 10 }, (_, i) => {
+                                   const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? .42 : .92;
+                                   return [r * Math.cos(a), r * Math.sin(a) + .09]; })) },
+  circle:   { name: '圓形',   d: 'M0 -.9A.9 .9 0 1 1 0 .9A.9 .9 0 1 1 0 -.9Z' },
+  triangle: { name: '三角形', d: polyD([[0, -.82], [.92, .74], [-.92, .74]]) },
+  diamond:  { name: '菱形',   d: polyD([[0, -.92], [.7, 0], [0, .92], [-.7, 0]]) },
+  hexagon:  { name: '六角形', d: polyD(regular(6, .92)) }
+};
+Object.values(STAMPS).forEach(s => { s.path = new Path2D(s.d); });
+const isStamp = k => k in STAMPS;
+const stampDia = () => 12 + size * 1.5;          // stamp width in canvas px follows the size slider
+
+function drawStamp(ctx, kind, x, y, dia, c) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(dia / 2, dia / 2);
+  ctx.fillStyle = ctx.strokeStyle = c; ctx.lineWidth = 0.12; ctx.lineJoin = 'round';
+  ctx.fill(STAMPS[kind].path); ctx.stroke(STAMPS[kind].path);   // stroke = softly rounded corners
+  ctx.restore();
+}
+
+const brushName = k => k === 'solid' ? '純色' : (GRADS[k] || STAMPS[k]).name;
+const brushBtns = {};
+function addBrush(box, kind, iconHTML) {
+  const b = document.createElement('button');
+  b.className = 'brush'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', brushName(kind) + '筆');
+  b.innerHTML = iconHTML + '<span>' + brushName(kind) + '</span>';
+  b.addEventListener('click', () => setBrush(kind));
+  box.appendChild(b); brushBtns[kind] = b;
+}
+const colorBox = $('#colorBrushes'), stampBox = $('#stampBrushes');
+addBrush(colorBox, 'solid', '<i class="swatch" style="--sw:var(--cur)"></i>');
+Object.keys(GRADS).forEach(k => addBrush(colorBox, k, `<i class="swatch" style="--sw:${GRADS[k].css}"></i>`));
+Object.keys(STAMPS).forEach(k => addBrush(stampBox, k,
+  `<svg class="stampico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true"><path d="${STAMPS[k].d}"/></svg>`));
+
+function setColor(c, fromCrayon) {
+  color = c;
+  crayons.querySelectorAll('.crayon').forEach((b, i) => b.setAttribute('aria-pressed', fromCrayon && COLORS[i] === c));
+  document.documentElement.style.setProperty('--cur', c);
+  updatePreview();
+  if (tool === 'eraser') setTool('pen');
+}
+function setBrush(k) {
+  brush = k;
+  Object.entries(brushBtns).forEach(([id, b]) => b.setAttribute('aria-pressed', id === k));
+  if (tool === 'eraser') setTool('pen'); else { updateHint(); updatePreview(); }
+}
+function updateHint() {
+  const n = brushName(brush);
+  const pen = isStamp(brush) ? `按住拖曳，沿著筆跡蓋出一排${n}，大小跟著粗細變。`
+            : GRADS[brush]   ? `按住拖曳，畫出會一路變色的${n}漸層線條。`
+            : '按住滑鼠或觸控板拖曳，就能畫畫。';
+  const fill = isStamp(brush) ? `點一下圖案的某一塊，鋪滿${n}圖案（大小跟著粗細）。`
+             : GRADS[brush]   ? `點一下圖案的某一塊，用${n}漸層填滿。`
+             : '點一下圖案的某一塊，整塊一次塗滿。';
+  $('#hint').textContent = { pen, eraser: '按住拖曳，把顏色擦掉。', fill }[tool];
+}
+// the little preview beside the slider shows what the current brush looks like
+function updatePreview() {
+  const dot = $('#sizeDot'), sv = $('#sizeStamp'), d = 8 + size * 0.5;
+  const stamp = tool !== 'eraser' && isStamp(brush), grad = tool !== 'eraser' && GRADS[brush];
+  dot.style.display = stamp ? 'none' : 'block';
+  sv.style.display = stamp ? 'block' : 'none';
+  dot.style.width = dot.style.height = sv.style.width = sv.style.height = d + 'px';
+  dot.style.background = grad ? grad.css : color;
+  if (stamp) $('#sizeStampPath').setAttribute('d', STAMPS[brush].d);
+}
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
+  $('#brushSec').classList.toggle('off', t === 'eraser');
+  stage.style.cursor = t === 'fill' ? 'pointer' : 'none';
+  if (t === 'fill') ring.style.display = 'none';
+  updateHint(); updatePreview();
+}
+document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+$('#custom').addEventListener('input', e => setColor(e.target.value, false));
+$('#size').addEventListener('input', e => { size = +e.target.value; updatePreview(); });
+
+/* ---------- undo / clear ---------- */
+function syncUndo() { $('#undo').disabled = undoStack.length === 0; }
+function pushUndo() {
+  undoStack.push(pctx.getImageData(0, 0, N, N));
+  if (undoStack.length > 12) undoStack.shift();
+  syncUndo();
+}
+function doUndo() {
+  const s = undoStack.pop();
+  if (s) { pctx.putImageData(s, 0, 0); dirty = true; }
+  syncUndo();
+}
+$('#undo').addEventListener('click', doUndo);
+$('#clear').addEventListener('click', () => { pushUndo(); pctx.clearRect(0, 0, N, N); dirty = false; });
+
+/* ---------- drawing ---------- */
+const pos = e => {
+  const r = paint.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * N / r.width, y: (e.clientY - r.top) * N / r.height };
+};
+function brushStyle() {
+  pctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+  pctx.strokeStyle = pctx.fillStyle = color;
+  pctx.lineWidth = size; pctx.lineCap = pctx.lineJoin = 'round';
+}
+let drawing = false, last = null, lastMid = null;
+let kind = 'solid';                    // brush actually used by the current stroke ('eraser' for the eraser)
+let walkPrev = null, segStart = null, segLen = 0;   // gradient pen: current segment
+let stampCarry = 0;                    // stamp pen: distance walked since the last stamp
+let gradDist = 0;                      // distance along the gradient; continues from stroke to stroke
+let stampSize = 0, stampGap = 0;       // fixed for the whole stroke
+
+const GRAD_SEG = 8;                    // gradient pen draws one linear-gradient segment per ~8px of path
+
+function startStroke(p) {
+  brushStyle();
+  kind = tool === 'eraser' ? 'eraser' : brush;
+  if (isStamp(kind)) {
+    stampSize = stampDia(); stampGap = stampSize * 1.2;   // even spacing, small gap between stamps
+    stampCarry = 0; walkPrev = p;
+    drawStamp(pctx, kind, p.x, p.y, stampSize, color);
+  } else if (GRADS[kind]) {
+    segStart = walkPrev = p; segLen = 0;
+    pctx.fillStyle = gradColor(GRADS[kind], gradDist);
+    pctx.beginPath(); pctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2); pctx.fill();
+  } else {
+    pctx.beginPath(); pctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2); pctx.fill();
+  }
+  last = lastMid = p; dirty = true;
+}
+
+// stamps: walk the path and drop a stamp every `stampGap` px of arc length, whatever the pointer speed
+function walkStamp(a, b) {
+  const l = Math.hypot(b.x - a.x, b.y - a.y);
+  if (!l) return;
+  let d = stampGap - stampCarry;
+  while (d <= l) {
+    const t = d / l;
+    drawStamp(pctx, kind, a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, stampSize, color);
+    d += stampGap;
+  }
+  stampCarry = l - (d - stampGap);
+}
+// gradient pen: one segment stroked with a linear gradient from the colour at its start to the colour at its end
+function gradSegment(a, b) {
+  const l = Math.hypot(b.x - a.x, b.y - a.y);
+  if (!l) return;
+  const g = GRADS[kind], lg = pctx.createLinearGradient(a.x, a.y, b.x, b.y);
+  lg.addColorStop(0, gradColor(g, gradDist)); lg.addColorStop(1, gradColor(g, gradDist + l));
+  pctx.strokeStyle = lg;
+  pctx.beginPath(); pctx.moveTo(a.x, a.y); pctx.lineTo(b.x, b.y); pctx.stroke();
+  gradDist += l;
+}
+function walkGrad(a, b) {
+  segLen += Math.hypot(b.x - a.x, b.y - a.y);
+  if (segLen >= GRAD_SEG) { gradSegment(segStart, b); segStart = b; segLen = 0; }
+}
+
+function extendStroke(p) {
+  const m = { x: (last.x + p.x) / 2, y: (last.y + p.y) / 2 };
+  if (kind === 'solid' || kind === 'eraser') {
+    pctx.beginPath(); pctx.moveTo(lastMid.x, lastMid.y);
+    pctx.quadraticCurveTo(last.x, last.y, m.x, m.y); pctx.stroke();
+  } else {
+    // same smoothed curve as the plain pen, but sampled every ~3px so we can measure distance along it
+    const A = lastMid, B = last, Cc = m;
+    const n = Math.max(1, Math.ceil((Math.hypot(B.x - A.x, B.y - A.y) + Math.hypot(Cc.x - B.x, Cc.y - B.y)) / 3));
+    for (let i = 1; i <= n; i++) {
+      const t = i / n, u = 1 - t;
+      const q = { x: u * u * A.x + 2 * u * t * B.x + t * t * Cc.x, y: u * u * A.y + 2 * u * t * B.y + t * t * Cc.y };
+      (isStamp(kind) ? walkStamp : walkGrad)(walkPrev, q);
+      walkPrev = q;
+    }
+  }
+  last = p; lastMid = m;
+}
+function finishStroke() {
+  if (drawing && isStamp(kind)) walkStamp(walkPrev, last);          // carry on to where the pointer really ended
+  else if (drawing && GRADS[kind]) { walkGrad(walkPrev, last); if (segLen > 0) gradSegment(segStart, last); }
+  drawing = false;
+}
+
+function doFill(p) {
+  const sx = Math.max(0, Math.min(N - 1, Math.round(p.x)));
+  const sy = Math.max(0, Math.min(N - 1, Math.round(p.y)));
+  let idx = sy * N + sx;
+  if (barrier[idx]) {                       // clicked on an outline: look around it
+    idx = -1;
+    for (let r = 1; r <= 6 && idx < 0; r++)
+      for (let dy = -r; dy <= r && idx < 0; dy++)
+        for (let dx = -r; dx <= r; dx++) {
+          const x = sx + dx, y = sy + dy;
+          if (x < 0 || y < 0 || x >= N || y >= N) continue;
+          if (!barrier[y * N + x]) { idx = y * N + x; break; }
+        }
+    if (idx < 0) return;
+  }
+  pushUndo();
+  const solid = brush === 'solid';       // gradient / pattern fills are painted afterwards through a mask
+  const img = solid ? pctx.getImageData(0, 0, N, N) : null, d = img && img.data;
+  const [rr, gg, bb] = hex2rgb(color);
+  const seen = new Uint8Array(N * N), stack = new Int32Array(N * N);
+  const bb2 = { x0: N, y0: N, x1: 0, y1: 0 };
+  let sp = 0; stack[sp++] = idx; seen[idx] = 1;
+  while (sp) {
+    const i = stack[--sp], x = i % N;
+    if (solid) { const o = i * 4; d[o] = rr; d[o + 1] = gg; d[o + 2] = bb; d[o + 3] = 255; }
+    else { const y = (i / N) | 0; if (x < bb2.x0) bb2.x0 = x; if (x > bb2.x1) bb2.x1 = x; if (y < bb2.y0) bb2.y0 = y; if (y > bb2.y1) bb2.y1 = y; }
+    let j;
+    if (x > 0)         { j = i - 1; if (!seen[j] && !barrier[j]) { seen[j] = 1; stack[sp++] = j; } }
+    if (x < N - 1)     { j = i + 1; if (!seen[j] && !barrier[j]) { seen[j] = 1; stack[sp++] = j; } }
+    if (i >= N)        { j = i - N; if (!seen[j] && !barrier[j]) { seen[j] = 1; stack[sp++] = j; } }
+    if (i < N * (N-1)) { j = i + N; if (!seen[j] && !barrier[j]) { seen[j] = 1; stack[sp++] = j; } }
+  }
+  if (solid) pctx.putImageData(img, 0, 0); else paintRegion(seen, bb2);
+  dirty = true;
+}
+
+/* gradient / pattern bucket: draw the art on a scratch canvas, keep only the flooded region, lay it on the paint layer */
+let fxCv = null, fxCtx = null, mkCv = null, mkCtx = null;
+const mixWhite = (c, t) => 'rgb(' + hex2rgb(c).map(v => Math.round(v + (255 - v) * t)).join(',') + ')';
+function paintRegion(seen, bb) {
+  if (!fxCv) {
+    fxCv = document.createElement('canvas'); mkCv = document.createElement('canvas');
+    fxCv.width = fxCv.height = mkCv.width = mkCv.height = N;
+    fxCtx = fxCv.getContext('2d'); mkCtx = mkCv.getContext('2d');
+  }
+  const w = bb.x1 - bb.x0 + 1, h = bb.y1 - bb.y0 + 1;
+  fxCtx.globalCompositeOperation = 'source-over'; fxCtx.clearRect(0, 0, N, N);
+  if (GRADS[brush]) {
+    const g = GRADS[brush], lg = fxCtx.createLinearGradient(bb.x0, bb.y0, bb.x0 + Math.max(w, 1), bb.y0 + Math.max(h, 1));
+    g.stops.forEach((c, i) => lg.addColorStop(i / (g.stops.length - 1), c));
+    fxCtx.fillStyle = lg; fxCtx.fillRect(bb.x0, bb.y0, w, h);
+  } else {                               // stamp pattern: pale tint of the colour + offset rows of stamps
+    fxCtx.fillStyle = mixWhite(color, 0.8); fxCtx.fillRect(bb.x0, bb.y0, w, h);
+    const dia = stampDia(), stepX = dia * 1.45, stepY = stepX * 0.9;
+    let row = Math.floor(bb.y0 / stepY) - 1;
+    for (let y = row * stepY; y <= bb.y1 + stepY; y += stepY, row++) {
+      const off = (row & 1) ? stepX / 2 : 0;
+      for (let x = Math.floor(bb.x0 / stepX) * stepX - stepX + off; x <= bb.x1 + stepX; x += stepX)
+        drawStamp(fxCtx, brush, x, y, dia, color);
+    }
+  }
+  const mask = mkCtx.createImageData(N, N), m = mask.data;   // alpha 255 inside the flooded region
+  for (let y = bb.y0; y <= bb.y1; y++)
+    for (let x = bb.x0, i = y * N + x; x <= bb.x1; x++, i++) if (seen[i]) m[i * 4 + 3] = 255;
+  mkCtx.putImageData(mask, 0, 0);
+  fxCtx.globalCompositeOperation = 'destination-in'; fxCtx.drawImage(mkCv, 0, 0);
+  fxCtx.globalCompositeOperation = 'source-over';
+  pctx.save(); pctx.globalCompositeOperation = 'source-over'; pctx.drawImage(fxCv, 0, 0); pctx.restore();
+}
+
+function moveRing(e) {
+  if (tool === 'fill') { ring.style.display = 'none'; return; }
+  const r = stage.getBoundingClientRect(), d = (tool === 'pen' && isStamp(brush) ? stampDia() : size) * r.width / N;
+  ring.style.display = 'block';
+  ring.style.width = ring.style.height = d + 'px';
+  ring.style.transform = `translate(${e.clientX - r.left - d / 2}px,${e.clientY - r.top - d / 2}px)`;
+}
+
+stage.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const p = pos(e);
+  if (tool === 'fill') { doFill(p); return; }
+  pushUndo();
+  drawing = true;
+  stage.setPointerCapture(e.pointerId);
+  startStroke(p);
+  moveRing(e);
+});
+stage.addEventListener('pointermove', e => {
+  moveRing(e);
+  if (!drawing) return;
+  const evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+  (evs.length ? evs : [e]).forEach(ev => extendStroke(pos(ev)));
+});
+stage.addEventListener('pointerup', finishStroke);
+stage.addEventListener('pointercancel', finishStroke);
+stage.addEventListener('pointerleave', () => { if (!drawing) ring.style.display = 'none'; });
+
+window.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); doUndo(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'b') setTool('pen'); else if (k === 'e') setTool('eraser'); else if (k === 'f') setTool('fill');
+});
+
+/* ---------- gallery ---------- */
+const thumbs = $('#thumbs');
+PICS.forEach((pic, i) => {
+  const b = document.createElement('button');
+  b.className = 'thumb'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', pic.name);
+  const c = document.createElement('canvas'); c.width = c.height = 240;
+  const g = toolkit(c.getContext('2d'), 240, 1.9);
+  g.begin(); pic.draw(g); g.end();
+  const t = document.createElement('span'); t.textContent = pic.name;
+  b.append(c, t);
+  b.addEventListener('click', () => loadPicture(i));
+  thumbs.appendChild(b);
+});
+
+/* ---------- start ---------- */
+setColor(color, true);
+setBrush('solid');
+setTool('pen');
+loadPicture(0);
+})();
+</script>
+</body>
+</html>
