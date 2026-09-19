@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>小小畫家 · 著色遊戲</title>
 <style>
 :root{
@@ -32,7 +32,7 @@ header h1{margin:0;font-size:28px;letter-spacing:.04em}
 header p{margin:0;color:var(--muted);font-size:15px}
 
 .layout{
-  display:grid;grid-template-columns:272px minmax(0,1fr) 236px;gap:18px;
+  display:grid;grid-template-columns:272px minmax(0,1fr) 272px;gap:18px;
   max-width:1400px;margin:0 auto;padding:6px 22px 30px;align-items:start;
 }
 .panel{
@@ -93,13 +93,25 @@ header p{margin:0;color:var(--muted);font-size:15px}
 
 .acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .act{border:3px solid var(--line);background:var(--panel);border-radius:14px;padding:9px 6px;font-size:15px}
+.act.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.act.primary:hover:not(:disabled){filter:brightness(1.08)}
+.bar{display:flex;gap:8px;width:min(100%,calc(100vh - 200px));width:min(100%,calc(100dvh - 200px));min-width:280px}
+.bar .act{flex:1;padding:11px 6px;font-size:16px;white-space:nowrap}
+.modal{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(20,26,60,.55)}
+.modal[hidden]{display:none}
+.sheet{width:100%;max-width:560px;max-height:100%;overflow:auto;padding:18px;text-align:center;background:var(--panel);border-radius:24px;box-shadow:0 8px 0 var(--shadow)}
+.sheet h3{margin:0 0 12px;font-size:20px}
+.sheet img{display:block;width:100%;max-height:58vh;object-fit:contain;background:#fff;border-radius:16px;box-shadow:0 0 0 3px var(--line);-webkit-touch-callout:default}
+.sheet .tip{margin:12px 0;color:var(--muted);font-size:14px;line-height:1.5}
+.sheet .row{display:flex;gap:8px}
+.sheet .row .act{flex:1;padding:12px 6px;font-size:16px}
 .act:hover:not(:disabled){border-color:var(--accent)}
 .act:disabled{opacity:.4;cursor:default}
 
 /* stage */
 .stagewrap{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
 .stage{
-  position:relative;width:min(100%,calc(100vh - 140px));min-width:280px;aspect-ratio:1;
+  position:relative;width:min(100%,calc(100vh - 200px));width:min(100%,calc(100dvh - 200px));min-width:280px;aspect-ratio:1;
   background:#fff;border-radius:24px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
   box-shadow:0 0 0 6px var(--panel),0 10px 0 6px var(--shadow);
 }
@@ -112,24 +124,115 @@ header p{margin:0;color:var(--muted);font-size:15px}
 .hint{color:var(--muted);font-size:15px;min-height:22px;text-align:center}
 
 /* gallery */
-.gallery{max-height:calc(100vh - 100px);overflow:auto;position:sticky;top:12px}
-.thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+/* right column: collapsed picture picker + crayon box */
+.right{max-height:calc(100vh - 24px);overflow:auto;position:sticky;top:12px}
+.pickhead{
+  width:100%;display:flex;align-items:center;gap:8px;text-align:left;
+  border:3px solid var(--line);background:var(--panel);border-radius:16px;padding:10px 12px;font-size:15px;
+}
+.pickhead:hover{border-color:var(--accent)}
+.pickhead[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pickhead:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pickhead .pt{font-weight:600;color:var(--muted);white-space:nowrap}
+.pickhead .pt .count{font-weight:400;font-size:12px}
+.pickhead .cur{flex:1;min-width:0;text-align:right;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickhead .chev{flex:none;transition:transform .15s}
+.pickhead[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.pickbody{margin-top:10px}
+.pickbody[hidden]{display:none}
+.thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:min(52vh,420px);overflow:auto;padding:2px}
 .thumb{
   border:3px solid var(--line);background:#fff;border-radius:16px;padding:4px 4px 6px;
   display:flex;flex-direction:column;align-items:center;gap:2px;color:#2a3560;font-size:13px;
 }
+.thumb[hidden]{display:none}
 .thumb canvas{width:100%;aspect-ratio:1;display:block}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cat{border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:3px 11px;font-size:14px}
+.cat:hover{border-color:var(--accent)}
+.cat[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.cat:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .thumb:hover{border-color:var(--accent)}
 .thumb[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 
 @media (max-width:1040px){
-  .layout{grid-template-columns:1fr}
-  .gallery{order:1;position:static;max-height:none;overflow:visible}
-  .thumbs{display:flex;overflow-x:auto;padding-bottom:6px}
-  .thumb{flex:0 0 104px}
-  .stagewrap{order:2}
+  .layout{grid-template-columns:minmax(0,1fr)}   /* minmax(0,…) stops wide content from stretching the page */
+  .right{position:static;max-height:none;overflow:visible}
+  .stagewrap{order:1}
+  .right{order:2}
   .tools{order:3}
-  .stage{width:100%}
+  .stage,.bar{width:100%;width:min(100%,max(240px,calc(100dvh - 150px)));min-width:0}
+  .thumbs{display:flex;max-height:none;overflow-x:auto;overflow-y:hidden;padding-bottom:6px}
+  .thumb{flex:0 0 104px}
+  .cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .cat{flex:none}
+}
+/* iPad portrait and other mid-size screens: tools on the left; canvas with the picker + crayon box right under it */
+@media (min-width:700px) and (max-width:1040px){
+  .layout{grid-template-columns:260px minmax(0,1fr)}
+  .tools{order:1;grid-column:1;grid-row:1 / span 2}
+  .stagewrap{order:2;grid-column:2;grid-row:1}
+  .right{order:3;grid-column:2;grid-row:2}
+  .thumbs{display:grid;grid-template-columns:repeat(4,1fr);max-height:300px;overflow-x:hidden;overflow-y:auto}
+  .thumb{flex:none}
+  .cats{flex-wrap:wrap;overflow:visible}
+}
+
+/* ===== Fit-to-window app shell: landscape screens (desktop, iPad landscape, phone landscape) =====
+   Everything is sized from the window: the page never scrolls, the canvas is the biggest square that fits,
+   and the side panels shrink with the window (they scroll inside themselves only if the window is really small). */
+@media (min-width:640px) and (min-aspect-ratio:1/1){
+  html,body{height:100%;overflow:hidden}
+  body{height:100vh;height:100dvh;display:flex;flex-direction:column}
+  header{flex:none;width:100%;max-width:none;padding:clamp(4px,1.2vh,14px) 18px clamp(2px,.6vh,8px);gap:4px 14px}
+  header h1{font-size:clamp(20px,3.4vh,30px)}
+  header p{font-size:clamp(12px,1.9vh,16px)}
+  .layout{
+    flex:1;min-height:0;width:100%;max-width:none;margin:0;
+    padding:clamp(2px,.8vh,8px) 18px clamp(8px,1.6vh,18px);gap:clamp(8px,1.6vw,20px);
+    grid-template-columns:clamp(200px,21vw,300px) minmax(0,1fr) clamp(200px,21vw,300px);
+    grid-template-rows:minmax(0,1fr);align-items:stretch;
+  }
+  .tools,.right{position:static;max-height:none;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:clamp(8px,1.6vh,16px)}
+  .stagewrap{container-type:size;min-height:0;justify-content:center;gap:clamp(4px,1.2vh,10px)}
+  .stage,.bar{width:min(100%,calc(100dvh - 190px));min-width:0}
+  @supports (width:1cqw){
+    .stage,.bar{width:min(100cqw - 14px,100cqh - 118px)}
+  }
+  .bar .act{padding:clamp(6px,1.4vh,11px) 4px;font-size:clamp(13px,2vh,16px)}
+  .hint{font-size:clamp(12px,1.8vh,15px);min-height:0;margin-top:clamp(4px,1vh,10px)}
+  .act{white-space:nowrap;font-size:clamp(12px,min(1.8vh,1.3vw),15px)}
+  /* panel contents shrink with window height */
+  .panel h2{margin-bottom:clamp(4px,1vh,10px);font-size:clamp(13px,1.9vh,16px)}
+  .panel section+section{margin-top:clamp(8px,1.8vh,18px)}
+  .tool{padding:clamp(4px,1vh,9px) 2px clamp(3px,.8vh,7px);font-size:clamp(12px,1.8vh,14px)}
+  .tool .ico{font-size:clamp(18px,3.2vh,26px)}
+  .brush{padding:clamp(3px,.7vh,6px) 2px clamp(2px,.6vh,5px);font-size:clamp(11px,1.6vh,13px)}
+  .brush-group+.brush-group{margin-top:clamp(6px,1.2vh,12px)}
+  .brush-cap{margin-bottom:clamp(2px,.6vh,6px);font-size:clamp(11px,1.6vh,13px)}
+  .brushes,.tools-row{gap:clamp(4px,.8vh,8px)}
+  .size-preview{width:clamp(36px,5.4vh,52px);height:clamp(36px,5.4vh,52px)}
+  .act{padding:clamp(5px,1.1vh,9px) 6px}
+  .crayons{gap:clamp(4px,1vh,8px) 6px;padding-top:clamp(4px,1vh,8px)}
+  .crayon{height:clamp(34px,6.4vh,60px)}
+  .crayon[aria-pressed="true"]{transform:translateY(-6px)}
+  .custom{margin-top:clamp(6px,1.4vh,14px)}
+  .pickhead{padding:clamp(6px,1.2vh,10px) 12px}
+  .thumbs{max-height:min(46vh,420px)}
+  .pickhead{gap:6px;padding-left:10px;padding-right:10px}
+  .pickhead .pt{flex:none}
+}
+@media (min-width:640px) and (min-aspect-ratio:1/1) and (max-width:1250px){
+  .pickhead .count{display:none}
+}
+@media (min-width:640px) and (min-aspect-ratio:1/1){
+  /* undo the stacked-layout rules that apply below 1040px */
+  .tools{order:0;grid-column:1;grid-row:1}
+  .stagewrap{order:0;grid-column:2;grid-row:1}
+  .right{order:0;grid-column:3;grid-row:1}
+  .thumbs{display:grid;grid-template-columns:repeat(2,1fr);overflow-x:hidden;overflow-y:auto;padding:2px}
+  .thumb{flex:none}
+  .cats{flex-wrap:wrap;overflow:visible}
 }
 </style>
 </head>
@@ -168,13 +271,6 @@ header p{margin:0;color:var(--muted);font-size:15px}
       </div>
     </section>
     <section>
-      <h2>蠟筆盒</h2>
-      <div class="crayons" id="crayons"></div>
-      <label class="custom">自己調顏色
-        <input type="color" id="custom" value="#ff5c8a" aria-label="自訂顏色">
-      </label>
-    </section>
-    <section>
       <div class="acts">
         <button class="act" id="undo" disabled>↩️ 復原</button>
         <button class="act" id="clear">🗑️ 全部擦掉</button>
@@ -183,6 +279,11 @@ header p{margin:0;color:var(--muted);font-size:15px}
   </aside>
 
   <section class="stagewrap">
+    <div class="bar" id="bar">
+      <button class="act" id="undo2" disabled aria-label="上一步（復原）">↩️ 上一步</button>
+      <button class="act" id="redo" disabled aria-label="下一步（重做）">↪️ 下一步</button>
+      <button class="act primary" id="save">💾 儲存圖片</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="paint"></canvas>
       <canvas id="lines"></canvas>
@@ -191,11 +292,39 @@ header p{margin:0;color:var(--muted);font-size:15px}
     <div class="hint" id="hint"></div>
   </section>
 
-  <aside class="panel gallery">
-    <h2>選一張圖</h2>
-    <div class="thumbs" id="thumbs"></div>
+  <aside class="panel right">
+    <section class="pick">
+      <button class="pickhead" id="pickToggle" aria-expanded="false" aria-controls="pickBody">
+        <span class="pt">🖼️ 選一張圖 <span class="count" id="count"></span></span>
+        <span class="cur" id="curName"></span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="pickbody" id="pickBody" hidden>
+        <div class="cats" id="cats"></div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+    </section>
+    <section>
+      <h2>蠟筆盒</h2>
+      <div class="crayons" id="crayons"></div>
+      <label class="custom">自己調顏色
+        <input type="color" id="custom" value="#ff5c8a" aria-label="自訂顏色">
+      </label>
+    </section>
   </aside>
 </main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="儲存圖片">
+  <div class="sheet">
+    <h3>🎉 你的作品完成囉！</h3>
+    <img id="preview" alt="你畫好的圖">
+    <p class="tip" id="tip"></p>
+    <div class="row">
+      <button class="act primary" id="doSave">📥 儲存圖片</button>
+      <button class="act" id="closeModal">關閉</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -243,6 +372,14 @@ function toolkit(ctx, size, lw) {
   };
 }
 
+/* little helpers for the cute faces (all coordinates are 0–100 like everything else) */
+const eyes  = (g, x, y, gap = 12, r = 2.6) => { g.dot(x - gap / 2, y, r); g.dot(x + gap / 2, y, r); };
+const smile = (g, x, y, w = 3) => g.line(P(`M${x - w} ${y}Q${x} ${y + w * 1.6} ${x + w} ${y}`));
+const blush = (g, x, y, gap = 24, rx = 4, ry = 2.8) => { g.shape(E(x - gap / 2, y, rx, ry)); g.shape(E(x + gap / 2, y, rx, ry)); };
+const drop  = (x, y, s = 1) => P(`M${x} ${y}L${x + 4 * s} ${y + 7 * s}Q${x + 4 * s} ${y + 11 * s} ${x} ${y + 11 * s}Q${x - 4 * s} ${y + 11 * s} ${x - 4 * s} ${y + 7 * s}Z`);
+// wavy water that fills the bottom of the picture (its outline stays off-canvas)
+const water = (y, amp = 3) => P(`M-4 ${y}Q6 ${y - amp} 16 ${y}T36 ${y}T56 ${y}T76 ${y}T96 ${y}T116 ${y}L116 106L-4 106Z`);
+
 /* ---------- pictures ---------- */
 const PICS = [
   { id: 'cat', name: '小貓', draw(g) {
@@ -258,6 +395,54 @@ const PICS = [
     g.line(P('M27 52L13 49')); g.line(P('M27 56L13 57'));
     g.line(P('M73 52L87 49')); g.line(P('M73 56L87 57'));
     g.shape(E(35, 57, 4, 3)); g.shape(E(65, 57, 4, 3));
+  }},
+  { id: 'catsleep', name: '睡覺小貓', draw(g) {
+    g.shape(E(50, 90, 46, 8));
+    g.shape(P('M86 70C102 74 102 48 86 50C93 57 92 63 83 65Z'));
+    g.shape(E(56, 72, 34, 20));
+    g.line(P('M50 53L52 61')); g.line(P('M60 52L62 60')); g.line(P('M70 54L71 62')); g.line(P('M79 58L80 65'));
+    g.shape(P('M14 58L13 40L28 52Z')); g.shape(P('M42 58L43 40L28 52Z'));
+    g.shape(E(28, 66, 17, 15));
+    g.line(P('M17 66Q21 70 25 66')); g.line(P('M31 66Q35 70 39 66'));
+    g.dot(28, 72, 1.8, 1.3); g.line(P('M28 73.5Q28 76 25 75.5')); g.line(P('M28 73.5Q28 76 31 75.5'));
+    g.shape(E(16, 73, 3.2, 2.2)); g.shape(E(40, 73, 3.2, 2.2));
+    g.shape(E(24, 84, 8.5, 4.2)); g.shape(E(36, 84, 8.5, 4.2));
+    g.line(P('M64 30L72 30L64 39L72 39'));
+    g.line(P('M76 14L86 14L76 25L86 25'));
+    g.line(P('M52 34L57 34L52 40L57 40'));
+  }},
+  { id: 'catyarn', name: '玩毛線球的貓', draw(g) {
+    g.shape(P('M22 84C8 88 4 72 12 64C14 70 12 77 24 77Z'));
+    g.shape(C(78, 82, 14));
+    g.line(P('M65 77Q78 71 91 77')); g.line(P('M64.5 84Q78 79 91.5 86')); g.line(P('M70 92Q80 86 88 93'));
+    g.line(P('M67 90Q60 99 50 96'));
+    g.shape(E(40, 74, 18, 19));
+    g.shape(E(32, 93, 7, 3.6)); g.shape(E(48, 93, 7, 3.6));
+    g.shape(P('M26 60Q40 68 54 60L54 66Q40 74 26 66Z')); g.shape(C(40, 73, 3)); g.line(P('M40 71L40 75'));
+    g.shape(P('M19 34L21 8L39 21Z')); g.shape(P('M65 34L63 8L45 21Z'));
+    g.shape(P('M24 26L24 15L32 21Z')); g.shape(P('M60 26L60 15L52 21Z'));
+    g.shape(E(42, 40, 24, 20));
+    g.line(P('M42 21L42 27')); g.line(P('M36 22L37 27')); g.line(P('M48 22L47 27'));
+    g.dot(33, 39, 3.2); g.dot(51, 39, 3.2);
+    g.dot(42, 46, 2.2, 1.6); g.line(P('M42 47.5Q42 51 37 50')); g.line(P('M42 47.5Q42 51 47 50'));
+    g.line(P('M19 44L8 41')); g.line(P('M19 48L8 50')); g.line(P('M65 44L76 41')); g.line(P('M65 48L76 50'));
+    g.shape(E(29, 47, 4, 2.8)); g.shape(E(55, 47, 4, 2.8));
+  }},
+  { id: 'catcup', name: '茶杯裡的貓', draw(g) {
+    g.shape(P('M25 36L27 8L45 22Z')); g.shape(P('M75 36L73 8L55 22Z'));
+    g.shape(P('M30 30L31 17L40 24Z')); g.shape(P('M70 30L69 17L60 24Z'));
+    g.shape(E(50, 38, 26, 22));
+    g.line(P('M50 17L50 23')); g.line(P('M44 18L45 23')); g.line(P('M56 18L55 23'));
+    g.line(P('M32 38Q36 32 40 38')); g.line(P('M60 38Q64 32 68 38'));
+    g.dot(50, 45, 2.4, 1.8); g.line(P('M50 47Q50 51 45 50')); g.line(P('M50 47Q50 51 55 50'));
+    g.line(P('M25 44L15 41')); g.line(P('M25 48L15 50')); g.line(P('M75 44L85 41')); g.line(P('M75 48L85 50'));
+    g.shape(E(34, 47, 4, 2.8)); g.shape(E(66, 47, 4, 2.8));
+    g.shape(E(50, 94, 38, 4));
+    g.shape(P('M77 66Q98 64 93 80Q90 92 73 88L74 82Q84 84 86 78Q88 71 77 72Z'));
+    g.shape(P('M22 58L78 58L74 88Q73 93 66 93L34 93Q27 93 26 88Z'));
+    g.line(P('M23.2 67L76.8 67'));
+    g.shape(P('M50 88C42 81 40 73 46 73C48 73 50 75 50 76C50 75 52 73 54 73C60 73 58 81 50 88Z'));
+    g.shape(E(33, 58, 7, 4.5)); g.shape(E(67, 58, 7, 4.5));
   }},
   { id: 'dog', name: '小狗', draw(g) {
     g.shape(P('M70 80Q90 72 87 56Q80 63 73 72Z'));
@@ -361,6 +546,36 @@ const PICS = [
     g.shape(C(14, 14, 6));
     g.dot(12.3, 13, .9); g.dot(15.7, 13, .9); g.line(P('M12 16Q14 18 16 16'));
   }},
+  { id: 'house2', name: '兩層樓洋房', draw(g) {
+    g.shape(E(11, 89.5, 7, 6.5)); g.shape(E(89, 89.5, 7, 6.5));
+    g.shape(P('M66 22L76 22L76 38L66 38Z'));
+    g.line(P('M71 17Q67 13 71 10Q75 7 71 4'));
+    g.shape(P('M18 42L82 42L82 95L18 95Z'));
+    g.line(P('M18 68L82 68'));
+    g.shape(P('M9 44L50 12L91 44Z'));
+    g.shape(C(50, 30, 5.5)); g.line(P('M50 24.5L50 35.5')); g.line(P('M44.5 30L55.5 30'));
+    g.shape(P('M24 48L38 48L38 62L24 62Z')); g.line(P('M31 48L31 62')); g.line(P('M24 55L38 55'));
+    g.shape(P('M62 48L76 48L76 62L62 62Z')); g.line(P('M69 48L69 62')); g.line(P('M62 55L76 55'));
+    g.shape(P('M44 62L44 54Q44 48 50 48Q56 48 56 54L56 62Z')); g.line(P('M50 48L50 62'));
+    g.shape(P('M24 74L36 74L36 88L24 88Z')); g.line(P('M30 74L30 88')); g.line(P('M24 81L36 81'));
+    g.shape(P('M64 74L76 74L76 88L64 88Z')); g.line(P('M70 74L70 88')); g.line(P('M64 81L76 81'));
+    g.shape(P('M43 95L43 78Q43 72 50 72Q57 72 57 78L57 95Z')); g.dot(53.5, 84, 1.1);
+    g.line(P('M3 95L97 95'));
+  }},
+  { id: 'cabin', name: '森林小木屋', draw(g) {
+    g.shape(P('M81 72L89 72L89 95L81 95Z'));
+    g.shape(P('M85 46L72 72L98 72Z')); g.shape(P('M85 30L74 54L96 54Z')); g.shape(P('M85 16L76 38L94 38Z'));
+    g.shape(P('M55 20L64 20L64 40L55 40Z'));
+    g.line(P('M59.5 15Q55 11 59.5 8Q64 5 59.5 2'));
+    g.shape(P('M14 50L70 50L70 95L14 95Z'));
+    [59, 68, 77, 86].forEach(y => g.line(P(`M14 ${y}L70 ${y}`)));
+    g.shape(P('M8 52L42 22L76 52Z'));
+    g.line(P('M20 45L64 45'));
+    g.shape(P('M30 95L30 66L44 66L44 95Z')); g.dot(41, 81, 1.1);
+    g.shape(P('M52 60L64 60L64 76L52 76Z')); g.line(P('M58 60L58 76')); g.line(P('M52 68L64 68'));
+    g.group([C(14, 14, 5), C(22, 11, 7), C(30, 14, 5), P('M14 14L30 14L30 19L14 19Z')]);
+    g.line(P('M3 95L97 95'));
+  }},
   { id: 'rainbow', name: '彩虹', draw(g) {
     const cx = 50, cy = 74, R = [44, 38, 32, 26, 20, 14];
     for (let i = 0; i < R.length - 1; i++) {
@@ -375,8 +590,465 @@ const PICS = [
     g.dot(76.5, 81, 1.1); g.dot(81.5, 81, 1.1); g.line(P('M77.5 84Q79 85.5 80.5 84'));
     g.shape(star(14, 20, 7)); g.shape(star(86, 18, 6)); g.shape(star(50, 13, 5));
   }},
+  /* ===== phase 3: more animals ===== */
+  { id: 'pig', name: '小豬', draw(g) {
+    g.line(P('M73 76Q87 72 83 63Q79 57 87 54'));
+    g.shape(E(50, 80, 24, 16));
+    g.shape(E(36, 95, 8, 4)); g.shape(E(64, 95, 8, 4));
+    g.shape(P('M23 33Q17 12 41 22Z')); g.shape(P('M77 33Q83 12 59 22Z'));
+    g.shape(C(50, 48, 29));
+    g.shape(E(50, 58, 13, 9.5));
+    g.dot(45.5, 58, 1.8); g.dot(54.5, 58, 1.8);
+    eyes(g, 50, 42, 26, 2.8);
+    blush(g, 50, 52, 42, 4.2, 3);
+  }},
+  { id: 'sheep', name: '小羊', draw(g) {
+    g.shape(P('M36 78L36 95Q36 97 38 97L42 97Q44 97 44 95L44 78Z'));
+    g.shape(P('M56 78L56 95Q56 97 58 97L62 97Q64 97 64 95L64 78Z'));
+    g.group([C(50, 28, 13), C(31, 36, 14), C(69, 36, 14), C(24, 56, 13), C(76, 56, 13), C(34, 72, 14), C(66, 72, 14), C(50, 54, 26)]);
+    g.shape(E(28, 50, 9, 5, 0.5)); g.shape(E(72, 50, 9, 5, -0.5));
+    g.shape(E(50, 58, 15, 17));
+    eyes(g, 50, 54, 15, 2.4);
+    g.dot(50, 62, 2.2, 1.6); smile(g, 50, 65, 3);
+  }},
+  { id: 'chick', name: '小雞', draw(g) {
+    g.line(P('M50 20Q47 10 41 8')); g.line(P('M50 20Q52 9 58 8')); g.line(P('M50 20Q56 12 62 13'));
+    g.shape(E(21, 56, 7, 11, 0.5)); g.shape(E(79, 56, 7, 11, -0.5));
+    g.shape(C(50, 46, 28));
+    g.shape(P('M43 50L57 50L50 59Z'));
+    eyes(g, 50, 40, 26, 2.8);
+    blush(g, 50, 50, 40, 4, 2.8);
+    g.shape(P('M19 70L28 78L37 68L46 78L54 68L63 78L72 68L81 76Q81 96 50 96Q19 96 19 70Z'));
+  }},
+  { id: 'duck', name: '小鴨', draw(g) {
+    g.shape(P('M74 66L92 54L90 74Z'));
+    g.shape(E(48, 68, 30, 18));
+    g.shape(P('M46 64Q58 54 72 62Q68 76 50 74Z'));
+    g.shape(C(38, 34, 19));
+    g.shape(P('M22 32Q8 32 8 40Q10 47 24 44Z'));
+    g.dot(35, 28, 2.6);
+    g.shape(E(41, 42, 4, 2.7));
+    g.shape(water(84));
+  }},
+  { id: 'penguin', name: '企鵝', draw(g) {
+    g.shape(E(37, 94, 9, 3.6)); g.shape(E(63, 94, 9, 3.6));
+    g.shape(E(19, 58, 7.5, 18, 0.28)); g.shape(E(81, 58, 7.5, 18, -0.28));
+    g.shape(E(50, 54, 30, 37));
+    g.shape(E(50, 66, 19, 20));
+    g.shape(P('M43 42L57 42L50 51Z'));
+    eyes(g, 50, 34, 20, 2.8);
+    blush(g, 50, 44, 36, 4, 2.8);
+  }},
+  { id: 'panda', name: '貓熊', draw(g) {
+    g.shape(E(50, 84, 24, 13));
+    g.shape(E(24, 82, 8, 13, 0.35)); g.shape(E(76, 82, 8, 13, -0.35));
+    g.shape(C(24, 26, 10)); g.shape(C(76, 26, 10));
+    g.shape(C(50, 48, 28));
+    g.shape(E(37, 46, 7.5, 9.5, 0.45)); g.shape(E(63, 46, 7.5, 9.5, -0.45));
+    g.dot(38, 46, 2.4); g.dot(62, 46, 2.4);
+    g.dot(50, 56, 4.5, 3);
+    g.line(P('M50 59L50 62')); g.line(P('M50 62Q46 66 43 63')); g.line(P('M50 62Q54 66 57 63'));
+    blush(g, 50, 60, 40, 4, 2.8);
+  }},
+  { id: 'elephant', name: '大象', draw(g) {
+    g.shape(E(19, 42, 15, 20, 0.15)); g.shape(E(81, 42, 15, 20, -0.15));
+    g.shape(E(20, 44, 8, 12, 0.15)); g.shape(E(80, 44, 8, 12, -0.15));
+    g.shape(C(50, 44, 25));
+    g.shape(P('M35 62Q26 70 30 80Q36 78 40 68Z')); g.shape(P('M65 62Q74 70 70 80Q64 78 60 68Z'));
+    g.shape(P('M40 58Q50 50 60 58Q62 76 58 90Q56 96 50 96Q44 96 42 90Q38 76 40 58Z'));
+    g.line(P('M45 70L55 70')); g.line(P('M45.5 78L55.5 78'));
+    eyes(g, 50, 38, 20, 2.7);
+    blush(g, 50, 50, 34, 3.8, 2.7);
+  }},
+  { id: 'giraffe', name: '長頸鹿', draw(g) {
+    g.shape(P('M38 42L62 42L68 106L32 106Z'));
+    g.shape(E(46, 56, 6, 4.6, 0.3)); g.shape(E(56, 68, 6, 5, -0.3));
+    g.shape(E(45, 80, 6.5, 5, 0.2)); g.shape(E(56, 92, 6, 4.6, -0.2));
+    g.line(P('M43 17L41 9')); g.line(P('M57 17L59 9'));
+    g.shape(C(41, 7.5, 2.8)); g.shape(C(59, 7.5, 2.8));
+    g.shape(E(28, 26, 8, 3.8, -0.5)); g.shape(E(72, 26, 8, 3.8, 0.5));
+    g.shape(E(50, 30, 17, 16));
+    g.shape(E(50, 38, 11, 7.5));
+    g.dot(46, 38, 1.2); g.dot(54, 38, 1.2);
+    eyes(g, 50, 27, 16, 2.4);
+    blush(g, 50, 34, 30, 3.4, 2.4);
+  }},
+  { id: 'lion', name: '獅子', draw(g) {
+    const ps = [C(50, 50, 32)];
+    for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ps.push(C(50 + 31 * Math.cos(a), 50 + 31 * Math.sin(a), 11)); }
+    g.group(ps);
+    g.shape(C(32, 32, 6.5)); g.shape(C(68, 32, 6.5));
+    g.shape(E(50, 54, 22, 21));
+    g.shape(E(50, 63, 11, 8));
+    g.dot(50, 58.5, 3.6, 2.6);
+    g.line(P('M50 61L50 65')); g.line(P('M50 65Q45 70 41 66')); g.line(P('M50 65Q55 70 59 66'));
+    eyes(g, 50, 46, 22, 2.6);
+  }},
+  { id: 'monkey', name: '猴子', draw(g) {
+    g.line(P('M70 90Q94 92 92 70Q90 60 96 56'));
+    g.shape(E(50, 84, 22, 17));
+    g.shape(C(20, 44, 10)); g.shape(C(80, 44, 10)); g.shape(C(20, 44, 5)); g.shape(C(80, 44, 5));
+    g.shape(C(50, 42, 27));
+    g.group([C(41, 44, 10.5), C(59, 44, 10.5), E(50, 55, 16, 12)]);
+    eyes(g, 50, 46, 18, 2.5);
+    g.dot(47, 55, 1.3); g.dot(53, 55, 1.3);
+    smile(g, 50, 60, 4.5);
+  }},
+  { id: 'koala', name: '無尾熊', draw(g) {
+    g.shape(E(50, 90, 26, 16));
+    g.shape(E(22, 84, 8, 12, 0.35)); g.shape(E(78, 84, 8, 12, -0.35));
+    g.shape(C(22, 34, 15)); g.shape(C(78, 34, 15)); g.shape(C(22, 34, 8)); g.shape(C(78, 34, 8));
+    g.shape(E(50, 52, 29, 27));
+    g.shape(E(50, 54, 7.5, 10.5));
+    eyes(g, 50, 42, 28, 2.4);
+    g.line(P('M50 65Q46 70 43 67')); g.line(P('M50 65Q54 70 57 67'));
+    blush(g, 50, 60, 42, 4, 2.8);
+  }},
+  { id: 'frog', name: '青蛙', draw(g) {
+    g.shape(E(50, 92, 44, 7));
+    g.shape(E(15, 76, 10, 15, 0.45)); g.shape(E(85, 76, 10, 15, -0.45));
+    g.shape(E(50, 62, 34, 26));
+    g.shape(E(34, 90, 9, 4.5)); g.shape(E(66, 90, 9, 4.5));
+    g.shape(C(31, 34, 13)); g.shape(C(69, 34, 13));
+    g.dot(31, 34, 4.5); g.dot(69, 34, 4.5);
+    g.dot(46, 54, 1.2); g.dot(54, 54, 1.2);
+    g.line(P('M30 66Q50 82 70 66'));
+    blush(g, 50, 60, 48, 4, 2.8);
+  }},
+  { id: 'turtle', name: '烏龜', draw(g) {
+    const sp = th => [42 + 34 * Math.cos(th), 72 - 42 * Math.sin(th)];
+    const ln = (x, y, th) => { const [a, b] = sp(th); g.line(P(`M${x} ${y}L${a.toFixed(1)} ${b.toFixed(1)}`)); };
+    g.shape(P('M10 64L3 70L10 72Z'));
+    g.shape(C(86, 56, 12));
+    g.shape(E(22, 77, 8, 8)); g.shape(E(62, 77, 8, 8));
+    g.shape(P('M8 72A34 42 0 0 1 76 72Z'));
+    g.shape(P('M33 50L42 44L51 50L51 62L42 68L33 62Z'));
+    ln(42, 44, Math.PI / 2); ln(33, 50, 2.44); ln(33, 62, 3.0); ln(51, 50, 0.7); ln(51, 62, 0.14);
+    g.line(P('M42 68L42 72'));
+    g.dot(90, 52, 2.3); smile(g, 89, 60, 4);
+    g.shape(E(82, 58, 3.4, 2.4));
+  }},
+  { id: 'owl', name: '貓頭鷹', draw(g) {
+    g.shape(E(50, 96, 40, 4));
+    g.shape(E(38, 92, 7, 3.5)); g.shape(E(62, 92, 7, 3.5));
+    g.shape(P('M26 30L23 10L42 22Z')); g.shape(P('M74 30L77 10L58 22Z'));
+    g.shape(E(50, 54, 30, 37));
+    g.shape(P('M22 46Q8 66 24 84Q30 66 26 48Z')); g.shape(P('M78 46Q92 66 76 84Q70 66 74 48Z'));
+    g.shape(E(50, 72, 17, 16));
+    g.line(P('M41 66Q45 71 49 66')); g.line(P('M51 66Q55 71 59 66')); g.line(P('M45 76Q50 81 55 76'));
+    g.shape(C(37, 40, 11)); g.shape(C(63, 40, 11));
+    g.dot(38, 41, 4.4); g.dot(62, 41, 4.4);
+    g.shape(P('M45 49L55 49L50 58Z'));
+  }},
+  { id: 'fox', name: '狐狸', draw(g) {
+    g.shape(P('M20 42L16 8L44 28Z')); g.shape(P('M80 42L84 8L56 28Z'));
+    g.shape(P('M22 34L21 18L35 28Z')); g.shape(P('M78 34L79 18L65 28Z'));
+    g.shape(E(50, 54, 33, 27));
+    g.shape(P('M17 60Q34 60 50 80Q66 60 83 60Q76 84 50 90Q24 84 17 60Z'));
+    g.dot(50, 79, 4.2, 3);
+    g.line(P('M50 82Q45 86 41 83')); g.line(P('M50 82Q55 86 59 83'));
+    eyes(g, 50, 48, 28, 2.8);
+  }},
+  { id: 'ladybug', name: '瓢蟲', draw(g) {
+    g.line(P('M20 50L6 44')); g.line(P('M18 64L4 66')); g.line(P('M22 78L10 90'));
+    g.line(P('M80 50L94 44')); g.line(P('M82 64L96 66')); g.line(P('M78 78L90 90'));
+    g.line(P('M42 22Q38 10 28 8')); g.line(P('M58 22Q62 10 72 8'));
+    g.dot(28, 8, 3); g.dot(72, 8, 3);
+    g.shape(C(50, 60, 32));
+    g.line(P('M50 28L50 92'));
+    g.shape(C(35, 52, 6.5)); g.shape(C(65, 52, 6.5)); g.shape(C(33, 74, 6)); g.shape(C(67, 74, 6));
+    g.shape(E(50, 27, 19, 13));
+    eyes(g, 50, 25, 14, 2.2); smile(g, 50, 30, 3);
+  }},
+  { id: 'snail', name: '蝸牛', draw(g) {
+    g.line(P('M80 57L76 39')); g.line(P('M89 58L92 41'));
+    g.group([E(44, 86, 38, 9), C(84, 66, 11), E(85, 78, 9, 13)]);
+    g.shape(C(76, 35, 4.5)); g.shape(C(92, 37, 4.5)); g.dot(76, 35, 1.8); g.dot(92, 37, 1.8);
+    g.shape(C(38, 52, 28));
+    g.line(P('M38 52Q44 46 48 52Q50 62 38 64Q24 62 24 50Q26 34 42 32Q60 34 62 52'));
+    smile(g, 84, 68, 4);
+  }},
+  { id: 'bee', name: '蜜蜂', draw(g) {
+    g.shape(E(24, 38, 15, 9, -0.6)); g.shape(E(76, 38, 15, 9, 0.6));
+    g.line(P('M42 30Q38 18 29 14')); g.line(P('M58 30Q62 18 71 14'));
+    g.dot(28, 13.5, 3); g.dot(72, 13.5, 3);
+    g.shape(E(50, 60, 28, 31));
+    g.line(P('M22.5 66Q50 74 77.5 66')); g.line(P('M28.6 80Q50 87 71.4 80'));
+    g.shape(P('M45 90L55 90L50 99Z'));
+    eyes(g, 50, 46, 18, 2.8); smile(g, 50, 52, 4);
+    blush(g, 50, 56, 40, 4, 2.8);
+  }},
+  { id: 'dino', name: '恐龍', draw(g) {
+    const spike = a => {
+      const x = 50 + 32 * Math.cos(a), y = 62 + 28 * Math.sin(a), nx = Math.cos(a), ny = Math.sin(a);
+      return P(`M${(x - 5 * ny).toFixed(1)} ${(y + 5 * nx).toFixed(1)}L${(x + 11 * nx).toFixed(1)} ${(y + 11 * ny).toFixed(1)}L${(x + 5 * ny).toFixed(1)} ${(y - 5 * nx).toFixed(1)}Z`);
+    };
+    g.shape(P('M76 68Q96 66 97 88Q86 80 74 82Z'));
+    [-1.3, -0.9, -0.5, -0.1].forEach(a => g.shape(spike(a)));
+    g.shape(E(50, 62, 32, 28));
+    g.shape(E(50, 68, 19, 16));
+    g.shape(E(36, 92, 10, 5)); g.shape(E(64, 92, 10, 5));
+    g.shape(E(34, 34, 21, 18));
+    eyes(g, 34, 30, 14, 2.6);
+    g.dot(30, 40, 1.2); g.dot(38, 40, 1.2);
+    smile(g, 34, 43, 5);
+  }},
+  /* ===== phase 3: under the sea ===== */
+  { id: 'octopus', name: '章魚', draw(g) {
+    g.shape(E(22, 68, 7.5, 18, 0.5)); g.shape(E(34, 80, 7, 16, 0.18)); g.shape(E(44, 86, 6, 12, 0.04));
+    g.shape(E(56, 86, 6, 12, -0.04)); g.shape(E(66, 80, 7, 16, -0.18)); g.shape(E(78, 68, 7.5, 18, -0.5));
+    g.shape(E(50, 40, 28, 28));
+    g.shape(C(40, 21, 3.4)); g.shape(C(52, 17, 2.8)); g.shape(C(62, 23, 3));
+    eyes(g, 50, 40, 24, 3);
+    smile(g, 50, 48, 4);
+    blush(g, 50, 47, 42, 4, 2.8);
+  }},
+  { id: 'dolphin', name: '海豚', draw(g) {
+    g.shape(P('M50 28Q56 12 72 12Q64 20 66 34Z'));
+    g.shape(P('M8 60C10 54 18 52 24 46C26 30 42 24 58 28C72 32 80 44 88 50L98 40L96 58L86 60C74 76 48 80 30 72C20 68 12 66 8 60Z'));
+    g.shape(P('M44 66Q50 80 64 82Q58 72 58 62Z'));
+    g.dot(30, 52, 2.6);
+    g.line(P('M10 61Q20 68 32 62'));
+    g.shape(E(38, 60, 4, 2.7));
+    g.shape(C(80, 72, 3)); g.shape(C(90, 64, 2.4));
+    g.shape(water(88));
+  }},
+  { id: 'crab', name: '螃蟹', draw(g) {
+    g.line(P('M22 72L9 82')); g.line(P('M24 78L14 92')); g.line(P('M78 72L91 82')); g.line(P('M76 78L86 92'));
+    g.line(P('M26 56Q12 54 14 40')); g.line(P('M74 56Q88 54 86 40'));
+    g.shape(P('M14 28L9.1 17A12 12 0 1 0 18.9 17Z'));
+    g.shape(P('M86 28L90.9 17A12 12 0 1 1 81.1 17Z'));
+    g.shape(E(50, 64, 30, 19));
+    g.line(P('M42 47L42 34')); g.line(P('M58 47L58 34'));
+    g.shape(C(42, 29, 5.5)); g.shape(C(58, 29, 5.5)); g.dot(42, 29, 2); g.dot(58, 29, 2);
+    smile(g, 50, 62, 5);
+    blush(g, 50, 61, 44, 4, 2.8);
+  }},
+  { id: 'whale', name: '鯨魚', draw(g) {
+    g.line(P('M36 36L36 22')); g.line(P('M36 22Q28 14 22 18')); g.line(P('M36 22Q44 14 50 18'));
+    g.shape(P('M10 62Q10 34 44 34Q74 34 80 56Q84 46 92 44Q94 52 88 62Q94 66 96 76Q86 74 80 70Q70 86 44 86Q10 86 10 62Z'));
+    g.dot(24, 55, 2.8);
+    g.line(P('M12 64Q22 70 32 64'));
+    g.shape(E(32, 58, 4, 2.8));
+    g.line(P('M30 76Q44 80 58 76'));
+    g.shape(water(82));
+  }},
+  { id: 'starfish', name: '海星', draw(g) {
+    g.shape(star(50, 54, 44, 20));
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+      [0.66, 0.84].forEach(k => g.dot(50 + 44 * k * Math.cos(a), 54 + 44 * k * Math.sin(a), 1.7));
+    }
+    eyes(g, 50, 50, 13, 2.6); smile(g, 50, 56, 4);
+    blush(g, 50, 57, 28, 3.4, 2.4);
+  }},
+  { id: 'jellyfish', name: '水母', draw(g) {
+    ['M32 56Q26 66 32 76T32 96', 'M44 58Q38 68 44 78T44 98', 'M56 58Q62 68 56 78T56 98', 'M68 56Q74 66 68 76T68 96'].forEach(d => g.line(P(d)));
+    g.shape(P('M20 52Q20 12 50 12Q80 12 80 52Q72 58 66 52Q58 60 50 52Q42 60 34 52Q28 58 20 52Z'));
+    g.shape(C(36, 25, 3.4)); g.shape(C(64, 25, 3.4)); g.shape(C(50, 21, 2.8));
+    eyes(g, 50, 36, 22, 2.8); smile(g, 50, 41, 4);
+    blush(g, 50, 42, 40, 4, 2.8);
+    g.shape(C(10, 32, 3.6)); g.shape(C(90, 64, 3)); g.shape(C(86, 84, 2.4));
+  }},
+  /* ===== phase 3: yummy food ===== */
+  { id: 'apple', name: '蘋果', draw(g) {
+    g.shape(P('M46 32Q46 18 52 8L59 10Q55 20 56 32Z'));
+    g.shape(P('M56 20Q68 6 82 14Q70 28 56 20Z'));
+    g.shape(P('M50 30Q30 18 17 38Q7 62 24 82Q36 98 50 90Q64 98 76 82Q93 62 83 38Q70 18 50 30Z'));
+    g.line(P('M27 46Q24 58 30 68'));
+    eyes(g, 50, 58, 22, 2.8); smile(g, 50, 65, 4);
+    blush(g, 50, 66, 44, 4, 2.8);
+  }},
+  { id: 'strawberry', name: '草莓', draw(g) {
+    g.line(P('M50 20Q50 10 57 6'));
+    g.shape(P('M50 92Q18 74 14 42Q14 28 34 32Q50 34 66 32Q86 28 86 42Q82 74 50 92Z'));
+    g.shape(P('M28 30L38 20L45 29L50 16L55 29L62 20L72 30Q50 42 28 30Z'));
+    [[26, 50], [74, 50], [30, 74], [70, 74], [40, 82], [60, 82], [50, 74], [40, 45], [60, 45]].forEach(([x, y]) => g.dot(x, y, 1.3, 1.9));
+    eyes(g, 50, 54, 24, 2.8); smile(g, 50, 61, 4);
+    blush(g, 50, 63, 42, 4, 2.8);
+  }},
+  { id: 'cupcake', name: '杯子蛋糕', draw(g) {
+    g.shape(P('M22 56L78 56L70 94L30 94Z'));
+    g.line(P('M36 57L38 93')); g.line(P('M64 57L62 93'));
+    g.shape(P('M18 56Q18 44 50 44Q82 44 82 56Q50 64 18 56Z'));
+    g.shape(E(50, 38, 25, 9));
+    g.shape(E(50, 27, 16, 8));
+    g.line(P('M50 20Q52 10 58 8'));
+    g.shape(C(50, 17, 6));
+    g.line(P('M34 51L37 53')); g.line(P('M62 50L65 52')); g.line(P('M43 36L46 34')); g.line(P('M55 37L58 35'));
+    eyes(g, 50, 72, 12, 2.6); smile(g, 50, 77, 3.4);
+  }},
+  { id: 'watermelon', name: '西瓜', draw(g) {
+    g.shape(P('M6 34A44 44 0 0 0 94 34Z'));
+    g.shape(P('M13 34A37 37 0 0 0 87 34Z'));
+    [[28, 44], [72, 44], [36, 64], [64, 64], [50, 70], [22, 56], [78, 56]].forEach(([x, y]) => g.dot(x, y, 2, 3.2));
+    eyes(g, 50, 48, 20, 2.8); smile(g, 50, 55, 4.5);
+    blush(g, 50, 56, 38, 3.8, 2.6);
+  }},
+  { id: 'donut', name: '甜甜圈', draw(g) {
+    const hole = 'M32 50A18 18 0 1 0 68 50A18 18 0 1 0 32 50Z';
+    g.shape(P('M8 50A42 42 0 1 1 92 50A42 42 0 1 1 8 50Z ' + hole));
+    let d = '';
+    for (let i = 0; i <= 120; i++) {
+      const a = i * 2 * Math.PI / 120, r = 34 + 2.5 * Math.sin(10 * a);
+      d += (i ? 'L' : 'M') + (50 + r * Math.cos(a)).toFixed(1) + ' ' + (50 + r * Math.sin(a)).toFixed(1);
+    }
+    g.shape(P(d + 'Z ' + hole));
+    [-100, -70, -40, -10, 20, 160, 190, 220, 250].forEach((deg, i) => {
+      const a = deg * Math.PI / 180, x = 50 + 26.5 * Math.cos(a), y = 50 + 26.5 * Math.sin(a), b = a + 0.9 * (i % 3 + 1);
+      g.line(P(`M${(x - 1.8 * Math.cos(b)).toFixed(1)} ${(y - 1.8 * Math.sin(b)).toFixed(1)}L${(x + 1.8 * Math.cos(b)).toFixed(1)} ${(y + 1.8 * Math.sin(b)).toFixed(1)}`));
+    });
+    eyes(g, 50, 73, 16, 2.4); smile(g, 50, 77, 3.2);
+  }},
+  { id: 'burger', name: '漢堡', draw(g) {
+    g.shape(P('M14 80L86 80Q86 94 72 94L28 94Q14 94 14 80Z'));
+    g.shape(P('M12 64Q12 58 20 58L80 58Q88 58 88 64L88 72Q88 78 80 78L20 78Q12 78 12 72Z'));
+    g.shape(P('M14 50L86 50L86 60L72 60L66 70L60 60L14 60Z'));
+    g.shape(P('M10 46L90 46L90 52Q84 58 78 52Q72 58 66 52Q60 58 54 52Q48 58 42 52Q36 58 30 52Q24 58 18 52Q14 56 10 52Z'));
+    g.shape(P('M14 46Q14 14 50 14Q86 14 86 46Z'));
+    [[30, 22], [70, 22], [50, 18], [22, 34], [78, 34]].forEach(([x, y]) => g.dot(x, y, 1.9, 1.2));
+    eyes(g, 50, 32, 20, 2.8); smile(g, 50, 38, 4);
+  }},
+  /* ===== phase 3: things that go ===== */
+  { id: 'car', name: '小汽車', draw(g) {
+    g.shape(P('M6 64Q6 54 16 54L26 54Q30 34 46 34L62 34Q72 36 78 54L86 56Q94 58 94 68L94 74Q94 78 90 78L10 78Q6 78 6 74Z'));
+    g.shape(P('M32 54Q34 40 46 40L50 40L50 54Z')); g.shape(P('M55 40L62 40Q70 42 74 54L55 54Z'));
+    g.shape(E(88, 64, 3.5, 4)); g.shape(E(11, 64, 3, 4));
+    eyes(g, 51, 63, 16, 2.6); smile(g, 51, 68, 3.6);
+    g.shape(C(27, 78, 11)); g.shape(C(73, 78, 11)); g.shape(C(27, 78, 4.5)); g.shape(C(73, 78, 4.5));
+    g.line(P('M-4 92L104 92'));
+  }},
+  { id: 'train', name: '小火車', draw(g) {
+    g.shape(P('M20 44L20 28L34 28L34 44Z'));
+    g.shape(P('M17 28L37 28L34 21L20 21Z'));
+    g.group([C(23, 12, 5), C(31, 8, 6), C(39, 12, 5), P('M23 12L39 12L39 17L23 17Z')]);
+    g.shape(P('M14 44L56 44L56 78L14 78Q8 78 8 72L8 50Q8 44 14 44Z'));
+    g.shape(P('M56 28L92 28L92 78L56 78Z'));
+    g.shape(P('M52 22L96 22L96 28L52 28Z'));
+    g.shape(P('M64 36L84 36L84 56L64 56Z'));
+    eyes(g, 32, 58, 16, 2.6); smile(g, 32, 64, 4);
+    g.shape(C(24, 84, 10)); g.shape(C(48, 84, 10)); g.shape(C(76, 84, 10));
+    g.shape(C(24, 84, 3.5)); g.shape(C(48, 84, 3.5)); g.shape(C(76, 84, 3.5));
+    g.line(P('M-4 96L104 96'));
+  }},
+  { id: 'rocket', name: '火箭', draw(g) {
+    g.shape(P('M26 54L8 78L8 92L26 76Z')); g.shape(P('M74 54L92 78L92 92L74 76Z'));
+    g.shape(P('M50 6Q76 26 74 70L74 76L26 76L26 70Q24 26 50 6Z'));
+    g.shape(P('M38 76L62 76L58 86L42 86Z'));
+    g.shape(P('M40 86Q50 104 60 86Z'));
+    g.shape(C(50, 38, 10)); g.shape(C(50, 38, 5));
+    eyes(g, 50, 56, 16, 2.4); smile(g, 50, 60, 3.4);
+    g.line(P('M26 68Q50 74 74 68'));
+    g.shape(star(16, 22, 6)); g.shape(star(86, 18, 5)); g.shape(star(90, 44, 4)); g.shape(star(10, 56, 3.4));
+  }},
+  { id: 'balloon', name: '熱氣球', draw(g) {
+    const cloud = (x, y) => g.group([C(x, y, 5), C(x + 7, y - 4, 7), C(x + 14, y, 5), P(`M${x} ${y}L${x + 14} ${y}L${x + 14} ${y + 5}L${x} ${y + 5}Z`)]);
+    cloud(6, 82); cloud(80, 66);
+    g.line(P('M40 70L38 84')); g.line(P('M60 70L62 84'));
+    g.shape(P('M50 6Q88 6 84 40Q80 58 62 70L38 70Q20 58 16 40Q12 6 50 6Z'));
+    g.line(P('M50 6Q34 38 40 70')); g.line(P('M50 6Q66 38 60 70'));
+    eyes(g, 50, 38, 10, 2.4); smile(g, 50, 43, 3);
+    g.shape(P('M38 84L62 84L60 96L40 96Z'));
+  }},
+  /* ===== phase 3: sky and nature ===== */
+  { id: 'sun', name: '太陽', draw(g) {
+    for (let i = 0; i < 12; i++) {
+      const a = i * Math.PI / 6, c = Math.cos(a), s = Math.sin(a);
+      g.shape(P(`M${(50 + 30 * c - 5 * s).toFixed(1)} ${(50 + 30 * s + 5 * c).toFixed(1)}L${(50 + 46 * c).toFixed(1)} ${(50 + 46 * s).toFixed(1)}L${(50 + 30 * c + 5 * s).toFixed(1)} ${(50 + 30 * s - 5 * c).toFixed(1)}Z`));
+    }
+    g.shape(C(50, 50, 25));
+    eyes(g, 50, 46, 22, 3); smile(g, 50, 53, 6);
+    blush(g, 50, 55, 40, 4.5, 3);
+  }},
+  { id: 'moon', name: '月亮', draw(g) {
+    const c1 = { x: 46, y: 50, r: 40 }, c2 = { x: 64, y: 44, r: 33 };
+    const dx = c2.x - c1.x, dy = c2.y - c1.y, d = Math.hypot(dx, dy);
+    const a = (c1.r * c1.r - c2.r * c2.r + d * d) / (2 * d), h = Math.sqrt(c1.r * c1.r - a * a);
+    const xm = c1.x + a * dx / d, ym = c1.y + a * dy / d;
+    const p1 = [xm + h * dy / d, ym - h * dx / d], p2 = [xm - h * dy / d, ym + h * dx / d];
+    g.shape(P(`M${p1[0].toFixed(1)} ${p1[1].toFixed(1)}A${c1.r} ${c1.r} 0 1 0 ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}A${c2.r} ${c2.r} 0 1 1 ${p1[0].toFixed(1)} ${p1[1].toFixed(1)}Z`));
+    g.line(P('M12 44Q17 50 23 44'));
+    g.line(P('M12 58Q18 64 25 58'));
+    g.shape(E(21, 52, 3.6, 2.4));
+    g.shape(star(80, 24, 8)); g.shape(star(88, 66, 6)); g.shape(star(72, 88, 4.5)); g.shape(star(60, 50, 4));
+  }},
+  { id: 'raincloud', name: '雨雲', draw(g) {
+    g.group([C(28, 38, 15), C(48, 28, 19), C(70, 36, 16), P('M28 53L70 53L70 36L28 36Z')]);
+    eyes(g, 50, 38, 20, 2.8); smile(g, 50, 44, 4);
+    blush(g, 50, 45, 36, 4, 2.8);
+    [[22, 62], [38, 72], [54, 62], [70, 72], [30, 86], [62, 88]].forEach(([x, y]) => g.shape(drop(x, y)));
+  }},
+  /* ===== phase 3: story time ===== */
+  { id: 'unicorn', name: '獨角獸', draw(g) {
+    g.shape(E(24, 48, 9, 15, 0.2)); g.shape(E(20, 68, 8, 12, 0.35));
+    g.shape(E(76, 48, 9, 15, -0.2)); g.shape(E(80, 68, 8, 12, -0.35));
+    g.shape(P('M50 2L41 34L59 34Z'));
+    g.line(P('M46 18.5L54.5 21.5')); g.line(P('M43.6 26.5L56.4 29.5'));
+    g.shape(P('M31 36L28 18L44 28Z')); g.shape(P('M69 36L72 18L56 28Z'));
+    g.shape(E(50, 56, 24, 28));
+    g.shape(P('M34 30Q50 20 66 30Q56 44 50 36Q44 44 34 30Z'));
+    g.shape(E(50, 76, 14, 9));
+    g.dot(46, 74, 1.3); g.dot(54, 74, 1.3);
+    smile(g, 50, 79, 3);
+    eyes(g, 50, 55, 26, 2.8);
+    blush(g, 50, 64, 42, 4, 2.8);
+  }},
+  { id: 'castle', name: '城堡', draw(g) {
+    g.shape(P('M8 58L34 58L34 94L8 94Z')); g.shape(P('M5 58L21 32L37 58Z'));
+    g.shape(P('M66 58L92 58L92 94L66 94Z')); g.shape(P('M63 58L79 32L95 58Z'));
+    g.shape(P('M34 44L66 44L66 94L34 94Z')); g.shape(P('M29 44L50 14L71 44Z'));
+    g.line(P('M50 14L50 5')); g.shape(P('M50 5L61 8L50 11Z'));
+    g.shape(P('M46 50L54 50L54 62L46 62Z'));
+    g.shape(P('M42 94L42 78Q42 68 50 68Q58 68 58 78L58 94Z'));
+    g.shape(P('M15 70L27 70L27 82L15 82Z')); g.shape(P('M73 70L85 70L85 82L73 82Z'));
+    g.line(P('M-4 94L104 94'));
+  }},
+  { id: 'castle2', name: '城牆城堡', draw(g) {
+    g.shape(P('M36 38L64 38L64 62L36 62Z')); g.shape(P('M32 38L50 12L68 38Z'));
+    g.line(P('M50 12L50 3')); g.shape(P('M50 3L60 6L50 9Z'));
+    g.shape(C(50, 49, 4.2)); g.line(P('M50 44.8L50 53.2')); g.line(P('M45.8 49L54.2 49'));
+    g.shape(P('M20 95L20 54L26 54L26 60L32 60L32 54L38 54L38 60L44 60L44 54L50 54L50 60L56 60L56 54L62 54L62 60L68 60L68 54L74 54L74 60L80 60L80 95Z'));
+    g.shape(P('M5 44L27 44L27 95L5 95Z')); g.shape(P('M2 44L16 18L30 44Z'));
+    g.shape(P('M73 44L95 44L95 95L73 95Z')); g.shape(P('M70 44L84 18L98 44Z'));
+    g.line(P('M16 18L16 8')); g.shape(P('M16 8L26 11L16 14Z'));
+    g.line(P('M84 18L84 8')); g.shape(P('M84 8L74 11L84 14Z'));
+    g.shape(P('M13 60L13 54Q13 50 16 50Q19 50 19 54L19 60Z'));
+    g.shape(P('M81 60L81 54Q81 50 84 50Q87 50 87 54L87 60Z'));
+    g.shape(P('M13 82L13 76Q13 72 16 72Q19 72 19 76L19 82Z'));
+    g.shape(P('M81 82L81 76Q81 72 84 72Q87 72 87 76L87 82Z'));
+    g.shape(P('M40 95L40 76Q40 66 50 66Q60 66 60 76L60 95Z'));
+    g.line(P('M50 66L50 95')); g.line(P('M40 82L60 82'));
+    g.line(P('M-4 95L104 95'));
+  }},
+  { id: 'tower', name: '魔法高塔', draw(g) {
+    g.shape(P('M16 20A11 11 0 1 0 27 32A8.5 8.5 0 0 1 16 20Z'));
+    g.shape(star(84, 16, 7)); g.shape(star(92, 40, 4.5)); g.shape(star(6, 46, 4.5));
+    g.shape(P('M30 74L70 74L70 95L30 95Z'));
+    g.shape(P('M14 60L30 60L30 95L14 95Z')); g.shape(P('M11 60L22 38L33 60Z'));
+    g.shape(P('M70 60L86 60L86 95L70 95Z')); g.shape(P('M67 60L78 38L89 60Z'));
+    g.shape(C(22, 74, 4)); g.line(P('M22 70L22 78')); g.line(P('M18 74L26 74'));
+    g.shape(C(78, 74, 4)); g.line(P('M78 70L78 78')); g.line(P('M74 74L82 74'));
+    g.shape(P('M36 34L64 34L64 95L36 95Z')); g.shape(P('M32 34L50 8L68 34Z'));
+    g.line(P('M39.2 24L60.8 24'));
+    g.shape(P('M45 62L45 52Q45 45 50 45Q55 45 55 52L55 62Z')); g.line(P('M50 45L50 62'));
+    g.shape(P('M40 70L60 70L60 74L40 74Z'));
+    g.shape(P('M44 95L44 85Q44 79 50 79Q56 79 56 85L56 95Z')); g.dot(53, 88, 1);
+    g.shape(star(50, 5, 5.5));
+    g.line(P('M-4 95L104 95'));
+  }},
   { id: 'blank', name: '空白畫布', draw() {} }
 ];
+
+/* gallery categories (the blank canvas has none, so it is always shown) */
+const CATEGORIES = [
+  ['動物', 'cat catsleep catyarn catcup dog bunny bear pig sheep chick duck penguin panda elephant giraffe lion monkey koala frog turtle owl fox butterfly ladybug snail bee dino'],
+  ['海洋', 'fish octopus dolphin crab whale starfish jellyfish'],
+  ['食物', 'icecream apple strawberry cupcake watermelon donut burger'],
+  ['交通', 'car train rocket balloon'],
+  ['自然', 'flower rainbow sun moon raincloud'],
+  ['童話', 'house house2 cabin unicorn castle castle2 tower']
+].map(([name, ids]) => [name, ids.split(' ')]);
+PICS.forEach(p => { const c = CATEGORIES.find(([, ids]) => ids.includes(p.id)); p.cat = c ? c[0] : ''; });
 
 /* ---------- canvases ---------- */
 const paint = $('#paint'), lines = $('#lines'), stage = $('#stage'), ring = $('#ring');
@@ -386,13 +1058,15 @@ const pctx = paint.getContext('2d', { willReadFrequently: true });
 
 let barrier = new Uint8Array(N * N);   // 1 where an outline is
 let current = -1, dirty = false;
-const saved = new Map();               // id -> ImageData of unfinished work
+const saved = new Map();               // id -> PNG data URL of unfinished work (small, so 50 pictures stay cheap on an iPad)
+let restoring = null;                  // id whose saved work is still being decoded
 const undoStack = [];
 
 function loadPicture(i) {
   if (current >= 0) {
     const id = PICS[current].id;
-    if (dirty) saved.set(id, pctx.getImageData(0, 0, N, N)); else saved.delete(id);
+    if (restoring === id) { /* still decoding: the saved copy is the truth, keep it */ }
+    else if (dirty) saved.set(id, paint.toDataURL()); else saved.delete(id);
   }
   current = i;
   lctx.clearRect(0, 0, N, N);
@@ -401,11 +1075,24 @@ function loadPicture(i) {
   const a = lctx.getImageData(0, 0, N, N).data;
   for (let k = 0; k < N * N; k++) barrier[k] = a[k * 4 + 3] > 110 ? 1 : 0;
   pctx.clearRect(0, 0, N, N);
-  const s = saved.get(PICS[i].id);
-  dirty = !!s;
-  if (s) pctx.putImageData(s, 0, 0);
-  undoStack.length = 0; syncUndo();
+  const id = PICS[i].id, s = saved.get(id);
+  dirty = !!s; restoring = null;
+  if (s) {
+    restoring = id;
+    const img = new Image();
+    img.onload = () => {
+      if (restoring !== id) return;
+      restoring = null;
+      if (current === i) {                       // draw underneath anything painted while it was loading
+        pctx.save(); pctx.globalCompositeOperation = 'destination-over'; pctx.drawImage(img, 0, 0); pctx.restore();
+      }
+    };
+    img.onerror = () => { if (restoring === id) restoring = null; };
+    img.src = s;
+  }
+  undoStack.length = 0; redoStack.length = 0; syncUndo();
   document.querySelectorAll('.thumb').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
+  $('#curName').textContent = PICS[i].name;
 }
 
 /* ---------- state: tool / color / size ---------- */
@@ -533,18 +1220,30 @@ $('#custom').addEventListener('input', e => setColor(e.target.value, false));
 $('#size').addEventListener('input', e => { size = +e.target.value; updatePreview(); });
 
 /* ---------- undo / clear ---------- */
-function syncUndo() { $('#undo').disabled = undoStack.length === 0; }
+const redoStack = [];                  // snapshots we stepped back from, so 「下一步」 can bring them back
+function syncUndo() {
+  $('#undo').disabled = $('#undo2').disabled = undoStack.length === 0;
+  $('#redo').disabled = redoStack.length === 0;
+}
 function pushUndo() {
   undoStack.push(pctx.getImageData(0, 0, N, N));
-  if (undoStack.length > 12) undoStack.shift();
+  if (undoStack.length > 20) undoStack.shift();
+  redoStack.length = 0;                // a new action starts a new "future"
   syncUndo();
 }
 function doUndo() {
   const s = undoStack.pop();
-  if (s) { pctx.putImageData(s, 0, 0); dirty = true; }
+  if (s) { redoStack.push(pctx.getImageData(0, 0, N, N)); pctx.putImageData(s, 0, 0); dirty = true; }
+  syncUndo();
+}
+function doRedo() {
+  const s = redoStack.pop();
+  if (s) { undoStack.push(pctx.getImageData(0, 0, N, N)); pctx.putImageData(s, 0, 0); dirty = true; }
   syncUndo();
 }
 $('#undo').addEventListener('click', doUndo);
+$('#undo2').addEventListener('click', doUndo);
+$('#redo').addEventListener('click', doRedo);
 $('#clear').addEventListener('click', () => { pushUndo(); pctx.clearRect(0, 0, N, N); dirty = false; });
 
 /* ---------- drawing ---------- */
@@ -733,13 +1432,62 @@ stage.addEventListener('pointercancel', finishStroke);
 stage.addEventListener('pointerleave', () => { if (!drawing) ring.style.display = 'none'; });
 
 window.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); doUndo(); return; }
+  if ($('#modal') && !$('#modal').hidden) { if (e.key === 'Escape') closeSave(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? doRedo() : doUndo(); return; }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); doRedo(); return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
   if (k === 'b') setTool('pen'); else if (k === 'e') setTool('eraser'); else if (k === 'f') setTool('fill');
 });
 
-/* ---------- gallery ---------- */
+/* ---------- save the finished picture as a PNG ---------- */
+let saveFile = null, saveUrl = '';
+const canShareFiles = () => !!(saveFile && navigator.maxTouchPoints > 1 && navigator.canShare && navigator.canShare({ files: [saveFile] }));
+function closeSave() {
+  $('#modal').hidden = true;
+  if (saveUrl) URL.revokeObjectURL(saveUrl);
+  saveUrl = ''; saveFile = null; $('#preview').removeAttribute('src');
+}
+$('#save').addEventListener('click', () => {
+  if (drawing) return;
+  const out = document.createElement('canvas'); out.width = out.height = N;
+  const c = out.getContext('2d');
+  c.fillStyle = '#fff'; c.fillRect(0, 0, N, N);       // white paper, then the colours, then the outlines on top
+  c.drawImage(paint, 0, 0); c.drawImage(lines, 0, 0);
+  out.toBlob(blob => {
+    if (!blob) return;
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    const name = `小小畫家-${PICS[current].name}-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.png`;
+    if (saveUrl) URL.revokeObjectURL(saveUrl);
+    saveFile = new File([blob], name, { type: 'image/png' });
+    saveUrl = URL.createObjectURL(blob);
+    $('#preview').src = saveUrl;
+    $('#tip').textContent = canShareFiles()
+      ? '按「儲存圖片」，再選「儲存影像」就會存進相簿。也可以直接用手指長按上面的圖片。'
+      : '按「儲存圖片」會把作品下載成一張 PNG 圖檔。';
+    $('#modal').hidden = false;
+    $('#doSave').focus();
+  }, 'image/png');
+});
+$('#doSave').addEventListener('click', async () => {
+  if (!saveFile) return;
+  if (canShareFiles()) {                             // iPad / phone: the system share sheet has "save image"
+    try { await navigator.share({ files: [saveFile], title: '小小畫家' }); return; }
+    catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = saveUrl; a.download = saveFile.name;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+$('#closeModal').addEventListener('click', closeSave);
+$('#modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSave(); });
+
+/* ---------- gallery (folded away until you ask for it) ---------- */
+function setPickOpen(open) {
+  $('#pickToggle').setAttribute('aria-expanded', open);
+  $('#pickBody').hidden = !open;
+}
+$('#pickToggle').addEventListener('click', () => setPickOpen($('#pickBody').hidden));
 const thumbs = $('#thumbs');
 PICS.forEach((pic, i) => {
   const b = document.createElement('button');
@@ -749,9 +1497,25 @@ PICS.forEach((pic, i) => {
   g.begin(); pic.draw(g); g.end();
   const t = document.createElement('span'); t.textContent = pic.name;
   b.append(c, t);
-  b.addEventListener('click', () => loadPicture(i));
+  b.addEventListener('click', () => { loadPicture(i); setPickOpen(false); });   // pick, then fold the list away so the crayons stay in reach
   thumbs.appendChild(b);
 });
+$('#count').textContent = '（' + PICS.filter(p => p.id !== 'blank').length + ' 張）';
+
+// category buttons: hide/show thumbnails (indexes stay the same, so nothing else needs to know)
+const catsBox = $('#cats');
+function showCategory(name) {
+  catsBox.querySelectorAll('.cat').forEach(b => b.setAttribute('aria-pressed', b.dataset.cat === name));
+  document.querySelectorAll('.thumb').forEach((t, k) => { t.hidden = !(name === '全部' || !PICS[k].cat || PICS[k].cat === name); });
+  thumbs.scrollLeft = 0; thumbs.scrollTop = 0;
+}
+['全部', ...CATEGORIES.map(c => c[0])].forEach(name => {
+  const b = document.createElement('button');
+  b.className = 'cat'; b.dataset.cat = name; b.textContent = name; b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => showCategory(name));
+  catsBox.appendChild(b);
+});
+showCategory('全部');
 
 /* ---------- start ---------- */
 setColor(color, true);
