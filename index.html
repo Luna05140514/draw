@@ -115,8 +115,9 @@ header p{margin:0;color:var(--muted);font-size:15px}
 .act.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .act.primary:hover:not(:disabled){filter:brightness(1.08)}
 .bar{display:flex;gap:8px;width:min(100%,calc(100vh - 200px));width:min(100%,calc(100dvh - 200px));min-width:280px}
+#clearPhone{display:none}
 .bar .act{flex:1;padding:11px 6px;font-size:16px;white-space:nowrap}
-.modal{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(20,26,60,.55)}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(20,26,60,.55)}
 .modal[hidden]{display:none}
 .sheet{width:100%;max-width:560px;max-height:100%;overflow:auto;padding:18px;text-align:center;background:var(--panel);border-radius:24px;box-shadow:0 8px 0 var(--shadow)}
 .sheet h3{margin:0 0 12px;font-size:20px}
@@ -159,6 +160,11 @@ header p{margin:0;color:var(--muted);font-size:15px}
 .pickhead[aria-expanded="true"] .chev{transform:rotate(180deg)}
 .pickbody{margin-top:10px}
 .pickbody[hidden]{display:none}
+/* 筆刷種類 / 顏色 stay fully expanded everywhere except the phone layout below, which turns them into
+   tap-to-open sheets and is the one place that actually hides them via the [hidden] attribute. */
+#brushBody[hidden],#colorBody[hidden]{display:block}
+.pickhead.drop-head{display:none}
+.cur-swatch{display:none}
 .thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:min(52vh,420px);overflow:auto;padding:2px}
 .thumb{
   border:3px solid var(--line);background:#fff;border-radius:16px;padding:4px 4px 6px;
@@ -185,6 +191,76 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .thumb{flex:0 0 104px}
   .cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   .cat{flex:none}
+}
+/* ===== phone portrait: the whole app fits the screen, nothing scrolls but the page itself never does —
+   tool/brush/colour panels collapse into compact bars and open as bottom sheets when tapped ===== */
+@media (max-width:699px){
+  html,body{height:100%;overflow:hidden}
+  body{height:100vh;height:100dvh;display:flex;flex-direction:column}
+  header{flex:none;padding:10px 16px 4px;gap:2px 10px}
+  header h1{font-size:19px}
+  header p{display:none}
+
+  .layout{display:flex;flex-direction:column;align-items:stretch;flex:1;min-height:0;width:100%;max-width:none;margin:0;padding:8px 12px calc(10px + env(safe-area-inset-bottom));gap:8px}
+  .tools,.right{flex:none;padding:10px}
+  .panel.tools h2,.panel.right h2{display:none}
+  .panel section+section{margin-top:8px}
+  .stagewrap{order:1}
+  .tools{order:2}
+  .right{order:3}
+
+  .stagewrap{flex:1;min-height:0;container-type:size;gap:6px}
+  .bar{width:100%}
+  .bar .act{padding:9px 4px;font-size:13px}
+  .stage{width:min(100%,calc(100dvh - 240px));box-shadow:0 0 0 4px var(--panel),0 7px 0 4px var(--shadow)}
+  @supports (width:1cqw){ .stage{width:min(100cqw - 4px,100cqh - 56px)} }
+  .hint{display:none}
+
+  /* compact icon row: pen / eraser / bucket */
+  .tools-row{gap:8px}
+  .tool{padding:7px 2px 6px;font-size:11px;gap:1px;border-width:2.5px}
+  .tool .ico{font-size:21px}
+
+  /* 筆刷種類 + 顏色 become one-line dropdown triggers that open as bottom sheets.
+     Only the trigger whose own sheet is open gets lifted above it (z-index), so tapping it again
+     still closes it even once the sheet has slid up over where it sits. The other, closed triggers
+     stay below the sheet/backdrop so they never show through on top of another sheet's content. */
+  .pickhead.drop-head{display:flex}
+  .pickhead{padding:9px 12px;font-size:13.5px;position:relative}
+  .pickhead[aria-expanded="true"]{z-index:32}
+  .pt{display:flex;align-items:center;gap:5px}
+  .cur-swatch{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--cur);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14)}
+
+  .size-row{gap:10px}
+  .size-preview{width:42px;height:42px}
+
+  /* the tools panel's own 復原/全部擦掉 row is dropped — those actions live in the top bar instead */
+  .tools .acts{display:none}
+  #clearPhone{display:flex}
+
+  /* picture picker / brush / colour panels become bottom sheets instead of pushing the page */
+  #pickBody[hidden],#brushBody[hidden],#colorBody[hidden]{display:none}
+  #pickBody,#brushBody,#colorBody{
+    position:fixed;left:0;right:0;bottom:0;z-index:31;max-height:72vh;overflow:auto;margin-top:0;
+    background:var(--panel);border-radius:22px 22px 0 0;box-shadow:0 -10px 34px rgba(20,26,60,.30);
+    padding:22px 16px calc(16px + env(safe-area-inset-bottom));
+    animation:sheetUp .22s ease;
+  }
+  #pickBody::before,#brushBody::before,#colorBody::before{
+    content:"";position:absolute;left:50%;top:9px;width:40px;height:5px;border-radius:3px;
+    background:var(--line);transform:translateX(-50%);
+  }
+  @keyframes sheetUp{ from{ transform:translateY(100%) } to{ transform:translateY(0) } }
+  .sheet-backdrop{position:fixed;inset:0;background:rgba(20,26,60,.42);z-index:30}
+  .sheet-backdrop[hidden]{display:none}
+  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);max-height:none;overflow:visible;padding-bottom:2px}
+  .thumb{flex:none}
+  .cats{flex-wrap:wrap;overflow:visible}
+  .brushes{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:699px) and (min-height:640px){
+  .stage{width:min(100%,calc(100dvh - 210px))}
+  @supports (width:1cqw){ .stage{width:min(100cqw - 4px,100cqh - 50px)} }
 }
 /* iPad portrait and other mid-size screens: tools on the left; canvas with the picker + crayon box right under it */
 @media (min-width:700px) and (max-width:1040px){
@@ -273,13 +349,20 @@ header p{margin:0;color:var(--muted);font-size:15px}
     </section>
     <section class="brush-sec" id="brushSec">
       <h2>筆刷種類</h2>
-      <div class="brush-group">
-        <div class="brush-cap">線條顏色</div>
-        <div class="brushes" id="colorBrushes"></div>
-      </div>
-      <div class="brush-group">
-        <div class="brush-cap">印章筆</div>
-        <div class="brushes" id="stampBrushes"></div>
+      <button class="pickhead drop-head" id="brushToggle" aria-expanded="false" aria-controls="brushBody">
+        <span class="pt">🖌️ 筆刷種類</span>
+        <span class="cur" id="brushCur">純色</span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="pickbody" id="brushBody" hidden>
+        <div class="brush-group">
+          <div class="brush-cap">線條顏色</div>
+          <div class="brushes" id="colorBrushes"></div>
+        </div>
+        <div class="brush-group">
+          <div class="brush-cap">印章筆</div>
+          <div class="brushes" id="stampBrushes"></div>
+        </div>
       </div>
     </section>
     <section>
@@ -301,6 +384,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
     <div class="bar" id="bar">
       <button class="act" id="undo2" disabled aria-label="上一步（復原）">↩️ 上一步</button>
       <button class="act" id="redo" disabled aria-label="下一步（重做）">↪️ 下一步</button>
+      <button class="act" id="clearPhone" aria-label="全部擦掉">🗑️</button>
       <button class="act primary" id="save">💾 儲存圖片</button>
     </div>
     <div class="stage" id="stage">
@@ -323,15 +407,24 @@ header p{margin:0;color:var(--muted);font-size:15px}
         <div class="thumbs" id="thumbs"></div>
       </div>
     </section>
-    <section>
+    <section class="colorsec">
       <h2>蠟筆盒</h2>
-      <div class="crayons" id="crayons"></div>
-      <label class="custom">自己調顏色
-        <input type="color" id="custom" value="#ff5c8a" aria-label="自訂顏色">
-      </label>
+      <button class="pickhead drop-head" id="colorToggle" aria-expanded="false" aria-controls="colorBody">
+        <span class="pt">🖍️ 顏色</span>
+        <span class="cur"><i class="cur-swatch" id="colorCurSwatch"></i></span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="pickbody" id="colorBody" hidden>
+        <div class="crayons" id="crayons"></div>
+        <label class="custom">自己調顏色
+          <input type="color" id="custom" value="#ff5c8a" aria-label="自訂顏色">
+        </label>
+      </div>
     </section>
   </aside>
 </main>
+
+<div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-label="儲存圖片">
   <div class="sheet">
@@ -1139,7 +1232,7 @@ COLORS.forEach(c => {
   const b = document.createElement('button');
   b.className = 'crayon'; b.style.setProperty('--c', c);
   b.setAttribute('aria-label', '顏色 ' + c); b.setAttribute('aria-pressed', 'false');
-  b.addEventListener('click', () => setColor(c, true));
+  b.addEventListener('click', () => { setColor(c, true); colorSheet.close(); });
   crayons.appendChild(b);
 });
 
@@ -1197,7 +1290,7 @@ function addBrush(box, kind, iconHTML) {
   const b = document.createElement('button');
   b.className = 'brush'; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', brushName(kind) + '筆');
   b.innerHTML = iconHTML + '<span>' + brushName(kind) + '</span>';
-  b.addEventListener('click', () => setBrush(kind));
+  b.addEventListener('click', () => { setBrush(kind); brushSheet.close(); });
   box.appendChild(b); brushBtns[kind] = b;
 }
 const colorBox = $('#colorBrushes'), stampBox = $('#stampBrushes');
@@ -1216,6 +1309,7 @@ function setColor(c, fromCrayon) {
 function setBrush(k) {
   brush = k;
   Object.entries(brushBtns).forEach(([id, b]) => b.setAttribute('aria-pressed', id === k));
+  $('#brushCur').textContent = brushName(k);
   if (tool === 'eraser') setTool('pen'); else { updateHint(); updatePreview(); }
 }
 function updateHint() {
@@ -1275,7 +1369,9 @@ function doRedo() {
 $('#undo').addEventListener('click', doUndo);
 $('#undo2').addEventListener('click', doUndo);
 $('#redo').addEventListener('click', doRedo);
-$('#clear').addEventListener('click', () => { pushUndo(); pctx.clearRect(0, 0, N, N); dirty = false; });
+const clearCanvas = () => { pushUndo(); pctx.clearRect(0, 0, N, N); dirty = false; };
+$('#clear').addEventListener('click', clearCanvas);
+$('#clearPhone').addEventListener('click', clearCanvas);
 
 /* ---------- drawing ---------- */
 const pos = e => {
@@ -1513,12 +1609,36 @@ $('#doSave').addEventListener('click', async () => {
 $('#closeModal').addEventListener('click', closeSave);
 $('#modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSave(); });
 
-/* ---------- gallery (folded away until you ask for it) ---------- */
-function setPickOpen(open) {
-  $('#pickToggle').setAttribute('aria-expanded', open);
-  $('#pickBody').hidden = !open;
+/* ---------- gallery / brush-kind / colour panels: folded away until tapped.
+   On the phone layout they additionally become bottom sheets over a shared backdrop;
+   on every other layout this is just the original "tap to expand inline" picker. ---------- */
+const sheetBackdrop = $('#sheetBackdrop');
+const sheets = [];
+function makeSheet(toggle, body) {
+  const entry = {
+    toggle, body,
+    open() {
+      sheets.forEach(s => { if (s !== entry && !s.body.hidden) s.close(); });
+      toggle.setAttribute('aria-expanded', 'true');
+      body.hidden = false;
+      sheetBackdrop.hidden = false;
+    },
+    close() {
+      toggle.setAttribute('aria-expanded', 'false');
+      body.hidden = true;
+      if (sheets.every(s => s.body.hidden)) sheetBackdrop.hidden = true;
+    }
+  };
+  toggle.addEventListener('click', () => body.hidden ? entry.open() : entry.close());
+  sheets.push(entry);
+  return entry;
 }
-$('#pickToggle').addEventListener('click', () => setPickOpen($('#pickBody').hidden));
+function setPickOpen(open) { open ? pickSheet.open() : pickSheet.close(); }   // kept for the call below
+const pickSheet = makeSheet($('#pickToggle'), $('#pickBody'));
+const brushSheet = makeSheet($('#brushToggle'), $('#brushBody'));
+const colorSheet = makeSheet($('#colorToggle'), $('#colorBody'));
+sheetBackdrop.addEventListener('click', () => sheets.forEach(s => s.close()));
+window.addEventListener('keydown', e => { if (e.key === 'Escape') sheets.forEach(s => s.close()); });
 const thumbs = $('#thumbs');
 PICS.forEach((pic, i) => {
   const b = document.createElement('button');
