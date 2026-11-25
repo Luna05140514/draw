@@ -323,6 +323,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
   #secColor{order:1}#brushSec,#stampSec{order:2}#secSize{order:3}#secPick{order:4}
   body[data-panel="stamp"] #secColor{order:5}
   #stampSec .brush-cap{display:none}
+  #stampSec .brush-mode .brush-cap{display:block}
   .rail .railbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
   /* while one of the list buttons (picture / brush / stamp) is open, the current tool keeps just a thin outline */
   body[data-panel="pick"] .rail .tool[aria-pressed="true"],body[data-panel="brush"] .rail .tool[aria-pressed="true"],body[data-panel="stamp"] .rail .tool[aria-pressed="true"]{background:var(--panel);font-weight:400}
@@ -425,6 +426,22 @@ header p{margin:0;color:var(--muted);font-size:15px}
           <div class="brush-cap">線條顏色</div>
           <div class="brushes" id="colorBrushes"></div>
         </div>
+        <div class="brush-group">
+          <div class="brush-cap">經典漸層</div>
+          <div class="brushes" id="classicBrushes"></div>
+        </div>
+        <div class="brush-group">
+          <div class="brush-cap">柔和水彩</div>
+          <div class="brushes" id="softBrushes"></div>
+        </div>
+        <div class="brush-group">
+          <div class="brush-cap">鮮豔彩虹</div>
+          <div class="brushes" id="vividBrushes"></div>
+        </div>
+        <div class="brush-group">
+          <div class="brush-cap">夜空星河</div>
+          <div class="brushes" id="nightBrushes"></div>
+        </div>
         <div class="brush-group" id="stampGroup">
           <div class="brush-cap">印章筆</div>
           <div class="brushes" id="stampBrushes"></div>
@@ -469,7 +486,15 @@ header p{margin:0;color:var(--muted);font-size:15px}
   <!-- wide screens: JS moves the tool / brush / size / colour / picture sections in here (see placeSections) -->
   <aside class="dock" id="dock">
     <div class="panel opts" id="optsPanel">
-      <section id="stampSec"><h2>印章筆</h2></section>
+      <section id="stampSec"><h2>印章筆</h2>
+        <div class="brush-group brush-mode" id="stampMode">
+          <div class="brush-cap">蓋印章的方式</div>
+          <div class="modes">
+            <button type="button" class="mode" data-mode="pen" aria-pressed="true"><span class="mi">👆</span>蓋一個</button>
+            <button type="button" class="mode" data-mode="fill" aria-pressed="false"><span class="mi">🪣</span>油漆桶</button>
+          </div>
+        </div>
+      </section>
     </div>
     <nav class="panel rail" id="railPanel" aria-label="工具欄">
       <section id="secRailPick">
@@ -736,8 +761,39 @@ const GRADS = {};
  ['meadowHeart', '草地愛心', 'heart', ['#ffee4a','#8fe05a','#2fc6c0','#2b9fe0'], ['#29b76a','#1f9ec0','#1ab0d0','#22d0b0'], [1, 1]],
  ['nightStar',   '星空星星', 'star',  ['#1c2f8f','#5a2fa8','#b03aa8','#ee3fa0'], ['#ff5fb0','#b05ff0','#e050c0','#ff80c8'], [1, 1]]
 ].forEach(([id, name, stamp, stops, stampStops, look]) => { GRADS[id] = { name, loop: false, stops, stampStops, stamp, look }; });
+const MORE_GRADS = [                // 28 more colour-changing lines (colours taken from the reference pictures), no stamps inside
+  ['classicBrushes', 'c0', '珊瑚蜜桃', ['#fb6c5e', '#feb590', '#f4bc5b']],
+  ['classicBrushes', 'c1', '薄荷海', ['#1d3f63', '#5cbebf', '#ade5c8']],
+  ['classicBrushes', 'c2', '丁香粉紫', ['#502978', '#ccadd9', '#fdc7db']],
+  ['classicBrushes', 'c3', '粉彩天空', ['#f9bfc5', '#f5e5cd', '#b6dcee']],
+  ['classicBrushes', 'c4', '焦糖橙', ['#97402d', '#cd683e', '#eea736']],
+  ['classicBrushes', 'c5', '森林抹茶', ['#135c49', '#99ad91', '#c8e588']],
+  ['classicBrushes', 'c6', '莓果蜜桃', ['#9f1f5a', '#d55987', '#fdc087']],
+  ['classicBrushes', 'c7', '暮色薰衣', ['#2f3160', '#858fcc', '#d5a3a6']],
+  ['classicBrushes', 'c8', '熱帶檸檬', ['#1d717e', '#72efeb', '#fde753']],
+  ['classicBrushes', 'c9', '玫瑰奶茶', ['#c18086', '#dcbd9b', '#ecdac4']],
+  ['softBrushes', '00', '晨曦', ['#fd484e', '#fd8756', '#ffd14f', '#fee252', '#fee438']],
+  ['softBrushes', '01', '深海', ['#185893', '#319bc1', '#32b6c8', '#53e1a9', '#14dd83']],
+  ['softBrushes', '02', '紫粉花園', ['#ad8af7', '#d99aef', '#f593dc', '#fe89c6', '#fe62b8']],
+  ['softBrushes', '03', '夕照', ['#fe6f02', '#fe952a', '#feb737', '#fec447', '#fecc32']],
+  ['softBrushes', '04', '冰川', ['#04b2bc', '#07bdcb', '#12adde', '#309dde', '#0e6fcf']],
+  ['softBrushes', '05', '糖果', ['#fd96da', '#f8aee5', '#cf87e1', '#a268ce', '#7b38ae']],
+  ['vividBrushes', '10', '熱情', ['#e73c49', '#f96a4e', '#fcae45', '#feba28', '#fff358']],
+  ['vividBrushes', '11', '湖光', ['#0e579d', '#2f8bb5', '#32c4b5', '#47e395', '#23e49a']],
+  ['vividBrushes', '12', '紫霞', ['#711a98', '#983aac', '#de6dc7', '#fd9bd5', '#fea4d7']],
+  ['vividBrushes', '13', '日落紫', ['#fe6f04', '#fc7c38', '#88217a', '#b24db0', '#7f26b1']],
+  ['vividBrushes', '14', '清新', ['#018e9c', '#25aeaa', '#64cba0', '#b1d078', '#fac711']],
+  ['vividBrushes', '15', '彩虹線', ['#c80613', '#733965', '#695280', '#3a6096', '#0886c5']],
+  ['nightBrushes', '20', '星夜', ['#14284e', '#18385d', '#2a5175', '#867e6a', '#ddae5d']],
+  ['nightBrushes', '21', '極光', ['#260e41', '#443370', '#30687e', '#1dbdbd', '#10a1a5']],
+  ['nightBrushes', '22', '星座', ['#162346', '#242c5a', '#7466a6', '#9888c6', '#cd8ace']],
+  ['nightBrushes', '23', '銀河', ['#3a0c47', '#8b185b', '#d04f76', '#ed7156', '#fea34a']],
+  ['nightBrushes', '24', '宇宙晚霞', ['#4e1848', '#6f1d45', '#a33a50', '#f2844d', '#f39054']],
+  ['nightBrushes', '25', '太空', ['#050d16', '#0e2642', '#0f547c', '#2995bc', '#5bb3d7']]
+];
+MORE_GRADS.forEach(([box, id, name, stops]) => { GRADS['m' + id] = { name, loop: false, stops, stampStops: null, stamp: null, look: [1, 1], box }; });
 Object.values(GRADS).forEach(g => {
-  g.rgb = g.stops.map(hex2rgb); g.srgb = g.stampStops.map(hex2rgb);
+  g.rgb = g.stops.map(hex2rgb); g.srgb = g.stampStops && g.stampStops.map(hex2rgb);
   g.css = 'linear-gradient(90deg,' + g.stops.join(',') + ')';
 });
 const GRAD_PERIOD = 520;               // canvas px of stroke for one full colour cycle
@@ -797,9 +853,9 @@ function addBrush(box, kind, iconHTML) {
 const colorBox = $('#colorBrushes'), stampBox = $('#stampBrushes');
 addBrush(colorBox, 'solid', '<i class="swatch" style="--sw:var(--cur)"></i>');
 Object.keys(GRADS).forEach(k => {
-  const g = GRADS[k], sc = [g.stampStops[0], g.stampStops[2], g.stampStops[3]];
-  const dots = sc.map(c => `<svg class="patico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true" style="fill:${c}"><path d="${STAMPS[g.stamp].d}"/></svg>`).join('');
-  addBrush(colorBox, k, `<i class="swatch pat" style="--sw:${g.css}">${dots}</i>`);
+  const g = GRADS[k];
+  const dots = g.stamp ? [g.stampStops[0], g.stampStops[2], g.stampStops[3]].map(c => `<svg class="patico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true" style="fill:${c}"><path d="${STAMPS[g.stamp].d}"/></svg>`).join('') : '';
+  addBrush(g.box ? $('#' + g.box) : colorBox, k, `<i class="swatch pat" style="--sw:${g.css}">${dots}</i>`);
 });
 Object.keys(STAMPS).forEach(k => addBrush(stampBox, k,
   `<svg class="stampico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true"><path d="${STAMPS[k].d}"/></svg>`));
@@ -819,11 +875,12 @@ function setBrush(k) {
 }
 function updateHint() {
   const n = brushName(brush);
-  const pen = isStamp(brush) ? `按住拖曳，沿著筆跡蓋出一排${n}，大小跟著粗細變。`
-            : GRADS[brush]   ? `按住拖曳，畫出會變色的${n}線條，線條裡面還有小印章。`
+  const once = !phoneMQ.matches;
+  const pen = isStamp(brush) ? (once ? `點一下，在那裡蓋一個${n}，大小跟著印章大小變。` : `按住拖曳，沿著筆跡蓋出一排${n}，大小跟著粗細變。`)
+            : GRADS[brush]   ? `按住拖曳，畫出會變色的${n}線條${GRADS[brush].stamp ? '，線條裡面還有小印章' : ''}。`
             : '按住滑鼠或觸控板拖曳，就能畫畫。';
   const fill = isStamp(brush) ? `點一下圖案的某一塊，鋪滿${n}圖案（大小跟著粗細）。`
-             : GRADS[brush]   ? `點一下圖案的某一塊，用${n}漸層填滿，上面還有小印章。`
+             : GRADS[brush]   ? `點一下圖案的某一塊，用${n}漸層填滿${GRADS[brush].stamp ? '，上面還有小印章' : ''}。`
              : '點一下圖案的某一塊，整塊一次塗滿。';
   $('#hint').textContent = { pen, eraser: '按住拖曳，把顏色擦掉。', fill }[tool];
 }
@@ -861,7 +918,11 @@ function setTool(t) {
   applySize(); updateHint();
 }
 document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => { sidePanel = null; setTool(b.dataset.tool); pickSheet.close(); }));   // a tool button always leaves the picture list
-document.querySelectorAll('#brushMode .mode').forEach(b => b.addEventListener('click', () => setTool(b.dataset.mode)));   // stays inside the 筆刷 panel
+document.querySelectorAll('.modes .mode').forEach(b => b.addEventListener('click', () => {
+  if (b.closest('#stampMode')) { stampPref = b.dataset.mode; if (!isStamp(brush)) setBrush('heart'); }   // 印章 panel: make sure a stamp is the active brush
+  else if (isStamp(brush)) setBrush('solid');                                // 筆刷 panel: a line brush
+  setTool(b.dataset.mode);
+}));   // stays inside the 筆刷 panel
 // which rail button is "on" decides what the options column shows (wide layout): the picture list, or the selected tool's options
 let sidePanel = null;                  // wide layout: 'brush' | 'stamp' while one of those rail buttons is open, otherwise null
 function syncPanel() {
@@ -871,7 +932,7 @@ function syncPanel() {
   $('#railPick').setAttribute('aria-pressed', picking);
   $('#railBrush').setAttribute('aria-pressed', panel === 'brush');
   $('#railStamp').setAttribute('aria-pressed', panel === 'stamp');
-  document.querySelectorAll('#brushMode .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === tool));
+  document.querySelectorAll('.modes .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === tool));
   refreshSizeUI(); updatePreview();
   $('#sizeH').textContent = panel === 'eraser' ? '橡皮擦大小' : panel === 'stamp' ? '印章大小' : panel === 'brush' ? '粗細' : '粗細 · 印章大小';
 }
@@ -962,6 +1023,7 @@ const GRAD_SEG = 8;                    // gradient pen draws one linear-gradient
 function startStroke(p) {
   brushStyle();
   kind = tool === 'eraser' ? 'eraser' : brush;
+  onceStroke = !phoneMQ.matches;
   if (isStamp(kind)) {
     stampSize = stampDia(); stampGap = stampSize * 1.2;   // even spacing, small gap between stamps
     stampCarry = 0; walkPrev = p;
@@ -978,7 +1040,9 @@ function startStroke(p) {
 }
 
 // stamps: walk the path and drop a stamp every `stampGap` px of arc length, whatever the pointer speed
+let onceStroke = false;                // wide layout, 蓋一個 mode: a stamp press drops exactly one stamp, dragging adds nothing
 function walkStamp(a, b) {
+  if (onceStroke) return;
   const l = Math.hypot(b.x - a.x, b.y - a.y);
   if (!l) return;
   let d = stampGap - stampCarry;
@@ -1223,8 +1287,11 @@ const brushSheet = makeSheet($('#brushToggle'), $('#brushBody'));
 const colorSheet = makeSheet($('#colorToggle'), $('#colorBody'));
 $('#railPick').addEventListener('click', () => { sidePanel = null; pickSheet.body.hidden ? pickSheet.open() : pickSheet.close(); });
 // 筆刷 / 印章 rail buttons: show that list in the options column (press again to go back to the tool's own options)
+let stampPref = 'pen';                  // 印章 panel starts in 「蓋一個」; remembers the last choice made there
 [['railBrush', 'brush'], ['railStamp', 'stamp']].forEach(([id, name]) => $('#' + id).addEventListener('click', () => {
   sidePanel = sidePanel === name ? null : name;
+  if (sidePanel === 'stamp') { if (!isStamp(brush)) setBrush('heart'); setTool(stampPref); }
+  else if (sidePanel === 'brush') { if (isStamp(brush)) setBrush('solid'); if (tool === 'eraser') setTool('fill'); }
   pickSheet.close();                    // also re-syncs the panel
   syncPanel();
 }));
@@ -1237,7 +1304,7 @@ window.addEventListener('keydown', e => { if (e.key === 'Escape') sheets.forEach
 const thumbs = $('#thumbs');
 setColor(color, true);
 setBrush('solid');
-setTool('pen');
+setTool('fill');                       // start with the paint bucket
 $('#curName').textContent = '載入中…';
 
 loadAllPictures().then(found => {
