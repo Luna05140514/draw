@@ -63,17 +63,25 @@ header p{margin:0;color:var(--muted);font-size:15px}
 
 /* tools */
 .tools-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tool{
+.tool,.railbtn{
   border:3px solid var(--line);background:var(--panel);border-radius:16px;
   padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px;
 }
-.tool .ico{font-size:26px;line-height:1.1}
-.tool:hover{border-color:var(--accent)}
-.tool[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
-.tool:focus-visible,.crayon:focus-visible,.thumb:focus-visible,.act:focus-visible,.brush:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tool .ico,.railbtn .ico{font-size:26px;line-height:1.1}
+.eraser3d{display:block;width:1.3em;height:1.1em;margin:0 auto;overflow:visible}
+.tool:hover,.railbtn:hover{border-color:var(--accent)}
+.tool[aria-pressed="true"],.railbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.tool:focus-visible,.railbtn:focus-visible,.crayon:focus-visible,.thumb:focus-visible,.act:focus-visible,.brush:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
 /* brush kinds (solid / gradient / stamp) */
 .brush-group+.brush-group{margin-top:12px}
+.brush-mode{display:none}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border:2.5px solid var(--line,#e3e0f0);border-radius:12px;background:var(--panel);font:inherit;font-size:14px;cursor:pointer;color:inherit}
+.mode:hover{border-color:var(--accent)}
+.mode[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.mode:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pbrush{width:1.6em;height:1.6em;display:block;margin:-.2em auto -.2em;overflow:visible}
 .brush-cap{margin:0 0 6px 2px;font-size:13px;color:var(--muted)}
 .brushes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;transition:opacity .15s}
 .brush-sec.off .brushes{opacity:.5}
@@ -83,30 +91,38 @@ header p{margin:0;color:var(--muted);font-size:15px}
 }
 .brush:hover{border-color:var(--accent)}
 .brush[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+.brush .swatch.pat{display:flex;align-items:center;justify-content:space-evenly;padding:0 3px}
+.swatch .patico{width:11px;height:11px;stroke:#fff;stroke-width:.34;stroke-linejoin:round;paint-order:stroke;filter:drop-shadow(0 0 .6px rgba(0,0,0,.45))}
 .brush .swatch{display:block;width:36px;height:22px;border-radius:11px;background:var(--sw);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14)}
 .stampico{fill:var(--cur);stroke:var(--cur);stroke-width:.12;stroke-linejoin:round;filter:drop-shadow(0 0 .6px rgba(0,0,0,.6))}
 .brush .stampico{width:26px;height:22px;display:block}
+#stampSec .brush .stampico{width:38px;height:34px}
 
+.size-presets{display:flex;gap:10px;margin-bottom:12px}
+.szbtn{flex:1;height:54px;display:grid;place-items:center;border:3px solid var(--line);background:var(--panel);border-radius:14px}
+.szbtn i{display:block;border-radius:50%;background:var(--muted)}
+.szbtn:nth-child(1) i{width:12px;height:12px}
+.szbtn:nth-child(2) i{width:22px;height:22px}
+.szbtn:nth-child(3) i{width:34px;height:34px}
+.szbtn:hover{border-color:var(--accent)}
+.szbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.szbtn[aria-pressed="true"] i{background:var(--accent)}
+.szbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .size-row{display:flex;align-items:center;gap:12px}
 .size-row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .size-preview{width:52px;height:52px;flex:none;display:grid;place-items:center;background:var(--accent-soft);border-radius:14px}
 .size-preview i{display:block;border-radius:50%;background:#ff5c8a;width:16px;height:16px}
 .size-preview .stampico{display:none}
 
-/* crayon box */
-.crayons{display:grid;grid-template-columns:repeat(6,1fr);gap:8px 6px;padding-top:8px}
+/* colour box: round colour dots */
+.crayons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 10px;padding:6px 8px 6px;max-width:272px;margin:0 auto}
 .crayon{
-  position:relative;border:0;padding:0;height:60px;background:var(--c);
-  border-radius:16px 16px 5px 5px / 30px 30px 5px 5px;
-  box-shadow:inset 0 0 0 2px rgba(0,0,0,.14);
+  position:relative;border:0;padding:0;width:100%;aspect-ratio:1;background:var(--c);
+  border-radius:50%;box-shadow:inset 0 0 0 2px rgba(0,0,0,.14);
   transition:transform .12s;
 }
-.crayon::after{ /* paper wrapper band */
-  content:"";position:absolute;left:0;right:0;top:46%;height:26%;
-  background:rgba(255,255,255,.42);border-top:2px solid rgba(0,0,0,.12);border-bottom:2px solid rgba(0,0,0,.12);
-}
-.crayon:hover{transform:translateY(-3px)}
-.crayon[aria-pressed="true"]{transform:translateY(-9px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14),0 0 0 3px var(--accent)}
+.crayon:hover{transform:scale(1.08)}
+.crayon[aria-pressed="true"]{transform:scale(1.1);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14),0 0 0 3px var(--panel),0 0 0 6px var(--accent)}
 .custom{margin-top:14px;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
 .custom input{width:46px;height:34px;padding:0;border:3px solid var(--line);border-radius:10px;background:none;cursor:pointer}
 
@@ -166,6 +182,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
    tap-to-open sheets and is the one place that actually hides them via the [hidden] attribute. */
 #brushBody[hidden],#colorBody[hidden]{display:block}
 .pickhead.drop-head{display:none}
+#stampSec{display:none}
 .cur-swatch{display:none}
 .thumbs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:min(52vh,420px);overflow:auto;padding:2px}
 .thumb{
@@ -197,7 +214,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
 }
 /* ===== phone portrait: the whole app fits the screen, nothing scrolls but the page itself never does —
    tool/brush/colour panels collapse into compact bars and open as bottom sheets when tapped ===== */
-@media (max-width:699px){
+@media (max-width:639px), (max-width:699px) and (max-aspect-ratio:1/1){
   html,body{height:100%;overflow:hidden}
   body{height:100vh;height:100dvh;display:flex;flex-direction:column}
   header{flex:none;padding:10px 16px 4px;gap:2px 10px}
@@ -234,6 +251,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .cur-swatch{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--cur);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14)}
 
   .size-row{gap:10px}
+  .size-presets{display:none}            /* phone: the slider alone, to keep everything on one screen */
   .size-preview{width:42px;height:42px}
 
   /* the tools panel's own 復原/全部擦掉 row is dropped — those actions live in the top bar instead */
@@ -269,25 +287,61 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .cats{flex-wrap:wrap;overflow:visible}
   .brushes{grid-template-columns:repeat(3,1fr)}
 }
-@media (max-width:699px) and (min-height:640px){
+@media (max-width:639px) and (min-height:640px), (max-width:699px) and (max-aspect-ratio:1/1) and (min-height:640px){
   .stage{width:min(100%,calc(100dvh - 210px))}
   @supports (width:1cqw){ .stage{width:min(100cqw - 4px,100cqh - 50px)} }
 }
-/* iPad portrait and other mid-size screens: tools on the left; canvas with the picker + crayon box right under it */
-@media (min-width:700px) and (max-width:1040px){
-  .layout{grid-template-columns:260px minmax(0,1fr)}
-  .tools{order:1;grid-column:1;grid-row:1 / span 2}
-  .stagewrap{order:2;grid-column:2;grid-row:1}
-  .right{order:3;grid-column:2;grid-row:2}
-  .thumbs{display:grid;grid-template-columns:repeat(4,1fr);max-height:300px;overflow-x:hidden;overflow-y:auto}
+/* ===== every screen that is not a phone: tools live on the RIGHT, in two columns =====
+   far right  = the tool rail (picture picker, crayon, eraser, paint bucket, undo / clear)
+   next to it = the options of whatever is selected in the rail (crayon -> colours, brush kinds, size; eraser -> size;
+                paint bucket -> colours, brush kinds, size; picture -> the picture list) */
+.dock{display:none}
+@media (min-width:700px), (min-width:640px) and (min-aspect-ratio:1001/1000){
+  .tools,.right{display:none}
+  .layout{grid-template-columns:minmax(0,1fr) auto}
+  .stagewrap{grid-column:1;grid-row:1}
+  .dock{display:flex;grid-column:2;grid-row:1;gap:clamp(8px,1.2vw,14px);align-items:stretch;min-width:0}
+  .opts{width:clamp(210px,23vw,300px);display:flex;flex-direction:column;gap:clamp(8px,1.8vh,18px);min-width:0}
+  .rail{width:clamp(80px,7.6vw,98px);display:flex;flex-direction:column;gap:clamp(6px,1.2vh,10px);padding:clamp(8px,1.4vh,12px) clamp(6px,.8vw,10px)}
+  .panel.opts>section,.panel.rail>section{margin:0}
+  .rail .tools-row{display:flex;flex-direction:column;gap:clamp(6px,1.2vh,10px)}
+  .rail .tool,.rail .railbtn{width:100%}
+  .rail .tool[data-tool="fill"]{order:1}.rail .tool[data-tool="eraser"]{order:2}.rail .tool[data-tool="pen"]{order:3}
+  .brush-mode{display:block}
+  .rail #secActs{margin-top:auto}
+  .rail .acts{grid-template-columns:1fr}
+  .rail .act{white-space:normal;line-height:1.25;padding:7px 2px;font-size:12.5px}
+  /* the options column only shows what belongs to the selected rail button (JS keeps body[data-panel] up to date):
+     pen -> colours + size | eraser -> size | paint bucket -> colours | 筆刷 -> brush kinds + size | 印章 -> stamps + size | 選圖 -> pictures */
+  #secColor,#brushSec,#stampSec,#secSize,#secPick{display:none}
+  body[data-panel="pen"] #secColor,body[data-panel="pen"] #secSize,
+  body[data-panel="fill"] #secColor,
+  body[data-panel="eraser"] #secSize,
+  body[data-panel="brush"] #brushSec,body[data-panel="brush"] #secSize,
+  body[data-panel="stamp"] #stampSec,body[data-panel="stamp"] #secSize,body[data-panel="stamp"] #secColor,
+  body[data-panel="pick"] #secPick{display:block}
+  #secColor{order:1}#brushSec,#stampSec{order:2}#secSize{order:3}#secPick{order:4}
+  body[data-panel="stamp"] #secColor{order:5}
+  #stampSec .brush-cap{display:none}
+  .rail .railbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+  /* while one of the list buttons (picture / brush / stamp) is open, the current tool keeps just a thin outline */
+  body[data-panel="pick"] .rail .tool[aria-pressed="true"],body[data-panel="brush"] .rail .tool[aria-pressed="true"],body[data-panel="stamp"] .rail .tool[aria-pressed="true"]{background:var(--panel);font-weight:400}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));max-height:none;overflow:visible;padding:2px}
   .thumb{flex:none}
-  .cats{flex-wrap:wrap;overflow:visible}
+}
+/* tablet / narrow window held upright: canvas on top, the two columns underneath it (rail still at the far right) */
+@media (min-width:700px) and (max-width:1040px) and (max-aspect-ratio:1/1){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .stagewrap{grid-column:1;grid-row:1}
+  .dock{grid-column:1;grid-row:2}
+  .opts{flex:1;width:auto}
+  .brushes{grid-template-columns:repeat(6,1fr)}
 }
 
 /* ===== Fit-to-window app shell: landscape screens (desktop, iPad landscape, phone landscape) =====
    Everything is sized from the window: the page never scrolls, the canvas is the biggest square that fits,
-   and the side panels shrink with the window (they scroll inside themselves only if the window is really small). */
-@media (min-width:640px) and (min-aspect-ratio:1/1){
+   and the two right-hand columns shrink with the window (they scroll inside themselves only if the window is really small). */
+@media (min-width:640px) and (min-aspect-ratio:1001/1000){
   html,body{height:100%;overflow:hidden}
   body{height:100vh;height:100dvh;display:flex;flex-direction:column}
   header{flex:none;width:100%;max-width:none;padding:clamp(4px,1.2vh,14px) 18px clamp(2px,.6vh,8px);gap:4px 14px}
@@ -296,10 +350,12 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .layout{
     flex:1;min-height:0;width:100%;max-width:none;margin:0;
     padding:clamp(2px,.8vh,8px) 18px clamp(8px,1.6vh,18px);gap:clamp(8px,1.6vw,20px);
-    grid-template-columns:clamp(200px,21vw,300px) minmax(0,1fr) clamp(200px,21vw,300px);
+    grid-template-columns:minmax(0,1fr) auto;
     grid-template-rows:minmax(0,1fr);align-items:stretch;
   }
-  .tools,.right{position:static;max-height:none;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:clamp(8px,1.6vh,16px)}
+  .dock{height:100%;min-height:0}
+  .opts,.rail{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+  .opts{padding:clamp(8px,1.6vh,16px)}
   .stagewrap{container-type:size;min-height:0;justify-content:center;gap:clamp(4px,1.2vh,10px)}
   .stage,.bar{width:min(100%,calc(100dvh - 190px));min-width:0}
   @supports (width:1cqw){
@@ -308,85 +364,86 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .bar .act{padding:clamp(6px,1.4vh,11px) 4px;font-size:clamp(13px,2vh,16px)}
   .hint{font-size:clamp(12px,1.8vh,15px);min-height:0;margin-top:clamp(4px,1vh,10px)}
   .act{white-space:nowrap;font-size:clamp(12px,min(1.8vh,1.3vw),15px)}
+  .rail .act{white-space:normal;font-size:clamp(11px,1.7vh,12.5px)}
   /* panel contents shrink with window height */
   .panel h2{margin-bottom:clamp(4px,1vh,10px);font-size:clamp(13px,1.9vh,16px)}
-  .panel section+section{margin-top:clamp(8px,1.8vh,18px)}
-  .tool{padding:clamp(4px,1vh,9px) 2px clamp(3px,.8vh,7px);font-size:clamp(12px,1.8vh,14px)}
-  .tool .ico{font-size:clamp(18px,3.2vh,26px)}
+  .tool,.railbtn{padding:clamp(4px,1vh,9px) 2px clamp(3px,.8vh,7px);font-size:clamp(12px,1.8vh,14px)}
+  .tool .ico,.railbtn .ico{font-size:clamp(18px,3.2vh,26px)}
   .brush{padding:clamp(3px,.7vh,6px) 2px clamp(2px,.6vh,5px);font-size:clamp(11px,1.6vh,13px)}
   .brush-group+.brush-group{margin-top:clamp(6px,1.2vh,12px)}
   .brush-cap{margin-bottom:clamp(2px,.6vh,6px);font-size:clamp(11px,1.6vh,13px)}
-  .brushes,.tools-row{gap:clamp(4px,.8vh,8px)}
+  .brushes{gap:clamp(4px,.8vh,8px)}
   .size-preview{width:clamp(36px,5.4vh,52px);height:clamp(36px,5.4vh,52px)}
   .act{padding:clamp(5px,1.1vh,9px) 6px}
-  .crayons{gap:clamp(4px,1vh,8px) 6px;padding-top:clamp(4px,1vh,8px)}
-  .crayon{height:clamp(34px,6.4vh,60px)}
-  .crayon[aria-pressed="true"]{transform:translateY(-6px)}
+  .rail .act{padding:clamp(4px,.8vh,7px) 2px}
+  .szbtn{height:clamp(38px,6vh,54px)}
+  .crayons{gap:clamp(8px,1.5vh,12px) 10px}
   .custom{margin-top:clamp(6px,1.4vh,14px)}
   .pickhead{padding:clamp(6px,1.2vh,10px) 12px}
-  .thumbs{max-height:min(46vh,420px)}
   .pickhead{gap:6px;padding-left:10px;padding-right:10px}
   .pickhead .pt{flex:none}
 }
-@media (min-width:640px) and (min-aspect-ratio:1/1) and (max-width:1250px){
+@media (min-width:640px) and (min-aspect-ratio:1001/1000) and (max-width:1250px){
   .pickhead .count{display:none}
-}
-@media (min-width:640px) and (min-aspect-ratio:1/1){
-  /* undo the stacked-layout rules that apply below 1040px */
-  .tools{order:0;grid-column:1;grid-row:1}
-  .stagewrap{order:0;grid-column:2;grid-row:1}
-  .right{order:0;grid-column:3;grid-row:1}
-  .thumbs{display:grid;grid-template-columns:repeat(2,1fr);overflow-x:hidden;overflow-y:auto;padding:2px}
-  .thumb{flex:none}
-  .cats{flex-wrap:wrap;overflow:visible}
 }
 </style>
 </head>
-<body>
+<body data-panel="pen">
 <header>
   <h1>🎨 小小畫家</h1>
-  <p>挑一張圖，選一支蠟筆，開始上色！</p>
 </header>
 
 <main class="layout">
-  <aside class="panel tools">
-    <section>
+  <aside class="panel tools" id="toolsPanel">
+    <section id="secTools">
       <h2>工具</h2>
       <div class="tools-row">
         <button class="tool" data-tool="pen" aria-pressed="true"><span class="ico">🖍️</span>彩色筆</button>
-        <button class="tool" data-tool="eraser" aria-pressed="false"><span class="ico">🧽</span>橡皮擦</button>
-        <button class="tool" data-tool="fill" aria-pressed="false"><span class="ico">🪣</span>油漆桶</button>
+        <button class="tool" data-tool="eraser" aria-pressed="false"><span class="ico"><svg class="eraser3d" viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="33.4" rx="17" ry="2" fill="rgba(0,0,0,.09)"/><g stroke="#8c97c4" stroke-width="1.4" stroke-linejoin="round"><polygon points="31,13 40,6 40,24 31,31" fill="#d7dcf0"/><polygon points="5,13 14,6 40,6 31,13" fill="#fbfcff"/><polygon points="5,13 31,13 31,31 5,31" fill="#ffffff"/></g></svg></span>橡皮擦</button>
+        <button class="tool" data-tool="fill" aria-pressed="false"><span class="ico"><svg class="pbrush" viewBox="0 0 40 40" aria-hidden="true"><g transform="rotate(38 20 20) translate(0 1)"><rect x="17" y="1.5" width="6" height="14" rx="3" fill="#e0a45e" stroke="#7a4a1f" stroke-width="1.2"/><circle cx="20" cy="5.2" r="1.1" fill="#7a4a1f"/><rect x="13.6" y="14.5" width="12.8" height="6.4" rx="1.2" fill="#d7dce6" stroke="#6b7488" stroke-width="1.2"/><path d="M13.8 17.7H26.2" stroke="#8b94a8" stroke-width="1"/><path d="M13.6 20.9h12.8l.6 7.2c0 3.2-1.6 6.2-3.4 7.6-1 .8-2.4.8-3.4.2-1 .6-2.4.6-3.4-.2-1.8-1.4-3.4-4.4-3.4-7.6z" fill="#f2e3c4" stroke="#7a4a1f" stroke-width="1.2" stroke-linejoin="round"/><path d="M13.9 28.2c.2 3 1.7 5.7 3.3 7 1 .7 2.4.7 3.4.1 1 .6 2.4.6 3.4-.2 1.7-1.3 3.2-4 3.4-6.9-1.4.9-2.6.2-3.4.2s-2.1.9-3.4.2c-1.3.7-2.4-.3-3.4-.3s-2.1.9-3.3-.1z" fill="var(--cur,#ff6fb5)" stroke="none"/></g></svg></span>油漆桶</button>
       </div>
     </section>
     <section class="brush-sec" id="brushSec">
       <h2>筆刷種類</h2>
       <button class="pickhead drop-head" id="brushToggle" aria-expanded="false" aria-controls="brushBody">
-        <span class="pt">🖌️ 筆刷種類</span>
+        <span class="pt">✨ 筆刷種類</span>
         <span class="cur" id="brushCur">純色</span>
         <span class="chev" aria-hidden="true">▾</span>
       </button>
       <div class="pickbody" id="brushBody" hidden>
         <button type="button" class="sheet-close" id="brushSheetClose" aria-label="收起筆刷種類">
-          <span class="pt">🖌️ 筆刷種類</span><span class="chev" aria-hidden="true">▲</span>
+          <span class="pt">✨ 筆刷種類</span><span class="chev" aria-hidden="true">▲</span>
         </button>
+        <div class="brush-group brush-mode" id="brushMode">
+          <div class="brush-cap">用這個筆刷來</div>
+          <div class="modes">
+            <button type="button" class="mode" data-mode="pen" aria-pressed="true"><span class="mi">🖍️</span>彩色筆</button>
+            <button type="button" class="mode" data-mode="fill" aria-pressed="false"><span class="mi">🪣</span>油漆桶</button>
+          </div>
+        </div>
         <div class="brush-group">
           <div class="brush-cap">線條顏色</div>
           <div class="brushes" id="colorBrushes"></div>
         </div>
-        <div class="brush-group">
+        <div class="brush-group" id="stampGroup">
           <div class="brush-cap">印章筆</div>
           <div class="brushes" id="stampBrushes"></div>
         </div>
       </div>
     </section>
-    <section>
-      <h2>粗細 · 印章大小</h2>
+    <section id="secSize">
+      <h2 id="sizeH">粗細 · 印章大小</h2>
+      <div class="size-presets" id="sizePresets" role="group" aria-label="大小">
+        <button type="button" class="szbtn" aria-label="小" aria-pressed="false"><i></i></button>
+        <button type="button" class="szbtn" aria-label="中" aria-pressed="false"><i></i></button>
+        <button type="button" class="szbtn" aria-label="大" aria-pressed="false"><i></i></button>
+      </div>
       <div class="size-row">
-        <input id="size" type="range" min="6" max="90" value="20" aria-label="筆的粗細（印章筆時是印章大小）">
+        <input id="size" type="range" min="6" max="90" value="24" aria-label="筆的粗細（印章筆時是印章大小）">
         <div class="size-preview"><i id="sizeDot"></i><svg id="sizeStamp" class="stampico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true"><path id="sizeStampPath" d=""/></svg></div>
       </div>
     </section>
-    <section>
+    <section id="secActs">
       <div class="acts">
         <button class="act" id="undo" disabled>↩️ 復原</button>
         <button class="act" id="clear">🗑️ 全部擦掉</button>
@@ -409,8 +466,26 @@ header p{margin:0;color:var(--muted);font-size:15px}
     <div class="hint" id="hint"></div>
   </section>
 
-  <aside class="panel right">
-    <section class="pick">
+  <!-- wide screens: JS moves the tool / brush / size / colour / picture sections in here (see placeSections) -->
+  <aside class="dock" id="dock">
+    <div class="panel opts" id="optsPanel">
+      <section id="stampSec"><h2>印章筆</h2></section>
+    </div>
+    <nav class="panel rail" id="railPanel" aria-label="工具欄">
+      <section id="secRailPick">
+        <button type="button" class="railbtn" id="railPick" aria-pressed="false" aria-controls="pickBody"><span class="ico">🖼️</span>選圖</button>
+      </section>
+      <section id="secRailStyle">
+        <div class="tools-row">
+          <button type="button" class="railbtn" id="railBrush" aria-pressed="false"><span class="ico">🌈</span>筆刷</button>
+          <button type="button" class="railbtn" id="railStamp" aria-pressed="false"><span class="ico">⭐</span>印章</button>
+        </div>
+      </section>
+    </nav>
+  </aside>
+
+  <aside class="panel right" id="rightPanel">
+    <section class="pick" id="secPick">
       <button class="pickhead" id="pickToggle" aria-expanded="false" aria-controls="pickBody">
         <span class="pt">🖼️ 選一張圖 <span class="count" id="count"></span></span>
         <span class="cur" id="curName"></span>
@@ -423,7 +498,7 @@ header p{margin:0;color:var(--muted);font-size:15px}
         <div class="thumbs" id="thumbs"></div>
       </div>
     </section>
-    <section class="colorsec">
+    <section class="colorsec" id="secColor">
       <h2>蠟筆盒</h2>
       <button class="pickhead drop-head" id="colorToggle" aria-expanded="false" aria-controls="colorBody">
         <span class="pt">🖍️ 顏色</span>
@@ -475,6 +550,26 @@ document.addEventListener('selectstart', e => e.preventDefault());
 
 const N = 1000;                       // internal canvas resolution
 const $ = s => document.querySelector(s);
+
+/* ---------- where the tool sections live ----------
+   Phone (narrow portrait): the original two cards + bottom sheets.
+   Everything else: tools move to the right — options column + tool rail. The same elements are simply re-parented,
+   so every handler keeps working. Keep this query identical to the phone media query in the CSS. */
+const phoneMQ = matchMedia('(max-width:639px), (max-width:699px) and (max-aspect-ratio:1/1)');
+function placeSections() {
+  const put = (parent, ids) => ids.forEach(id => parent.appendChild($('#' + id)));
+  if (phoneMQ.matches) {
+    put($('#toolsPanel'), ['secTools', 'brushSec', 'secSize', 'secActs']);
+    put($('#rightPanel'), ['secPick', 'secColor']);
+    put($('#brushBody'), ['stampGroup']);               // phone: line kinds + stamps share the one brush sheet
+  } else {
+    put($('#optsPanel'), ['secColor', 'brushSec', 'stampSec', 'secSize', 'secPick']);
+    put($('#stampSec'), ['stampGroup']);
+    put($('#railPanel'), ['secRailStyle', 'secTools', 'secActs']);
+  }
+}
+placeSections();
+phoneMQ.addEventListener('change', placeSections);
 
 /* ---------- drawing helpers (coordinates are 0–100) ---------- */
 const E = (cx, cy, rx, ry, rot = 0) => { const p = new Path2D(); p.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2); return p; };
@@ -606,41 +701,59 @@ function loadPicture(i) {
 }
 
 /* ---------- state: tool / color / size ---------- */
-let tool = 'pen', color = '#ff6fb5', size = 20;
+let tool = 'pen', color = '#ff6fb5', size = 24;
+// every kind of drawing remembers its own size; the middle round button is the default for each
+const SIZE_SETS = { pen: [10, 24, 46], stamp: [12, 28, 52], eraser: [20, 44, 84] };
+const sizes = { pen: 24, stamp: 28, eraser: 44 };
 let brush = 'solid';                   // 'solid' | gradient id | stamp id (used by pen and bucket)
 
-const COLORS = ['#ff4d4d','#ff8a3d','#ffc93c','#ffe86b','#b6e04a','#4cc76a',
-                '#1fa37a','#3cd6c4','#4fc3f7','#3d8bfd','#5b5bd6','#9b5de5',
-                '#d66bf5','#ff6fb5','#ff9ec4','#ffb3a7','#c68b59','#8d5a34',
-                '#5a3a22','#ffffff','#bdbdbd','#7a7a7a','#3a3a3a','#000000'];
+const COLORS = ['#d7263d','#ff4d4d','#ff7f6e','#ffb3a7',
+                '#ff8a3d','#ffb26b','#ffc93c','#ffe86b',
+                '#fff3a3','#b6e04a','#9be8b0','#4cc76a',
+                '#2e7d4f','#1fa37a','#3cd6c4','#7fe3f0',
+                '#4fc3f7','#3d8bfd','#1f4aa8','#5b5bd6',
+                '#9b5de5','#c3b1f5','#d66bf5','#8e3b8f',
+                '#ff6fb5','#ff9ec4','#f48fb1','#e6c9a0',
+                '#c68b59','#8d5a34','#5a3a22','#ffffff'];
 const crayons = $('#crayons');
 COLORS.forEach(c => {
   const b = document.createElement('button');
   b.className = 'crayon'; b.style.setProperty('--c', c);
   b.setAttribute('aria-label', '顏色 ' + c); b.setAttribute('aria-pressed', 'false');
-  b.addEventListener('click', () => { setColor(c, true); colorSheet.close(); });
+  b.addEventListener('click', () => { setColor(c, true); if (GRADS[brush]) setBrush('solid'); colorSheet.close(); });
   crayons.appendChild(b);
 });
 
 /* ---------- brush kinds: gradient pens + stamp pens ---------- */
 const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-const GRADS = {
-  rainbow: { name: '彩虹', loop: true,  stops: ['#ff3b3b','#ff9a2e','#ffe14a','#4cd964','#2ec4f1','#4a6cff','#a259ff'] },
-  sunset:  { name: '日落', loop: false, stops: ['#ff5f6d','#ff8a4c','#ffc65c','#ff7eb3','#a463f2'] },
-  ocean:   { name: '海洋', loop: false, stops: ['#1b3fa0','#2a7de1','#35c4f0','#5be0c3','#9df0e0'] },
-  candy:   { name: '糖果', loop: false, stops: ['#ff6fb5','#b56bff','#5b8bff','#4fd6ff'] },
-  forest:  { name: '森林', loop: false, stops: ['#0f7a4a','#3fbf6a','#a6e05a','#e8e35a'] }
-};
-Object.values(GRADS).forEach(g => { g.rgb = g.stops.map(hex2rgb); g.css = 'linear-gradient(90deg,' + g.stops.join(',') + ')'; });
+const GRADS = {};
+// six colour-changing lines with small stamps scattered inside them. stops = the line's colours, stampStops = the stamps' colours
+// (tone-on-tone, sampled at the same place along the line), look = [stamp size scale, gap scale]
+[['warmHeart',   '暖陽愛心', 'heart', ['#ee3f3f','#ff7a3c','#ffb347','#ffd45a'], ['#ff9a4d','#ffc24d','#ff8a3c','#ffd24d'], [1, 1]],
+ ['dreamStar',   '夢幻星星', 'star',  ['#ffa6cf','#b583f0','#8fa8f5','#7bb3f2'], ['#a03cf0','#e07cf0','#9b4fe8','#c88cf5'], [1, 1]],
+ ['lakeHeart',   '湖水愛心', 'heart', ['#8fe0a0','#4fc9b0','#2f9fe0','#1f6fd0'], ['#1f9a4a','#1a8f86','#1a74b8','#0f55c0'], [0.62, 0.5]],
+ ['duskStar',    '晚霞星星', 'star',  ['#8a2fa8','#c93c60','#f26a3a','#ff9a3c'], ['#ff7a45','#ff4a2e','#ffb347','#ff5a2a'], [1, 1]],
+ ['meadowHeart', '草地愛心', 'heart', ['#ffee4a','#8fe05a','#2fc6c0','#2b9fe0'], ['#29b76a','#1f9ec0','#1ab0d0','#22d0b0'], [1, 1]],
+ ['nightStar',   '星空星星', 'star',  ['#1c2f8f','#5a2fa8','#b03aa8','#ee3fa0'], ['#ff5fb0','#b05ff0','#e050c0','#ff80c8'], [1, 1]]
+].forEach(([id, name, stamp, stops, stampStops, look]) => { GRADS[id] = { name, loop: false, stops, stampStops, stamp, look }; });
+Object.values(GRADS).forEach(g => {
+  g.rgb = g.stops.map(hex2rgb); g.srgb = g.stampStops.map(hex2rgb);
+  g.css = 'linear-gradient(90deg,' + g.stops.join(',') + ')';
+});
 const GRAD_PERIOD = 520;               // canvas px of stroke for one full colour cycle
 
 // colour at distance `dist` along a stroke; rainbow wraps around, the others ping-pong so they stay smooth
-function gradColor(g, dist) {
-  const n = g.rgb.length;
+function gradColor(g, dist, rgb = g.rgb) {
+  const n = rgb.length;
   let t = ((dist / GRAD_PERIOD) % 1 + 1) % 1, f, i, j;
   if (g.loop) { f = t * n; i = Math.floor(f) % n; j = (i + 1) % n; }
   else { const u = t < 0.5 ? t * 2 : 2 - t * 2; f = u * (n - 1); i = Math.min(Math.floor(f), n - 2); j = i + 1; }
-  const k = f - Math.floor(f) , a = g.rgb[i], b = g.rgb[j];
+  const k = f - Math.floor(f) , a = rgb[i], b = rgb[j];
+  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * k)},${Math.round(a[1] + (b[1] - a[1]) * k)},${Math.round(a[2] + (b[2] - a[2]) * k)})`;
+}
+// colour at position t (0..1) across a list of rgb stops, no ping-pong (used by the bucket fill)
+function stopColor(rgb, t) {
+  const f = Math.max(0, Math.min(1, t)) * (rgb.length - 1), i = Math.min(Math.floor(f), rgb.length - 2), k = f - i, a = rgb[i], b = rgb[i + 1];
   return `rgb(${Math.round(a[0] + (b[0] - a[0]) * k)},${Math.round(a[1] + (b[1] - a[1]) * k)},${Math.round(a[2] + (b[2] - a[2]) * k)})`;
 }
 
@@ -650,14 +763,16 @@ const regular = (n, R, off = 0, dy = 0) => Array.from({ length: n }, (_, i) => {
   const a = off + i * 2 * Math.PI / n; return [R * Math.cos(a), R * Math.sin(a) + dy];
 });
 const STAMPS = {
-  heart:    { name: '愛心',   d: 'M0 .88C-1.05 .12-.95 -.84-.48 -.84C-.2 -.84 0 -.62 0 -.4C0 -.62 .2 -.84 .48 -.84C.95 -.84 1.05 .12 0 .88Z' },
-  star:     { name: '星星',   d: polyD(Array.from({ length: 10 }, (_, i) => {
-                                   const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? .42 : .92;
-                                   return [r * Math.cos(a), r * Math.sin(a) + .09]; })) },
-  circle:   { name: '圓形',   d: 'M0 -.9A.9 .9 0 1 1 0 .9A.9 .9 0 1 1 0 -.9Z' },
-  triangle: { name: '三角形', d: polyD([[0, -.82], [.92, .74], [-.92, .74]]) },
-  diamond:  { name: '菱形',   d: polyD([[0, -.92], [.7, 0], [0, .92], [-.7, 0]]) },
-  hexagon:  { name: '六角形', d: polyD(regular(6, .92)) }
+  heart:   { name: '愛心', d: 'M0 .88C-1.05 .12-.95 -.84-.48 -.84C-.2 -.84 0 -.62 0 -.4C0 -.62 .2 -.84 .48 -.84C.95 -.84 1.05 .12 0 .88Z' },
+  star:    { name: '星星', d: 'M0 -0.83L0.247 -0.25L0.875 -0.194L0.399 0.22L0.541 0.834L0 0.51L-0.541 0.834L-0.399 0.22L-0.875 -0.194L-0.247 -0.25Z' },
+  moon:    { name: '月亮', d: 'M0.122 -0.857A0.9 0.9 0 1 0 0.524 0.687A0.8 0.8 0 0 1 0.122 -0.857Z' },
+  circle:  { name: '圓形', d: 'M0 -0.9A0.9 0.9 0 1 1 0 0.9A0.9 0.9 0 1 1 0 -0.9Z' },
+  flower:  { name: '花朵', d: 'M-0.43 -0.5A0.43 0.43 0 1 1 0.43 -0.5A0.43 0.43 0 1 1 -0.43 -0.5ZM0.046 -0.155A0.43 0.43 0 1 1 0.906 -0.155A0.43 0.43 0 1 1 0.046 -0.155ZM-0.136 0.405A0.43 0.43 0 1 1 0.724 0.405A0.43 0.43 0 1 1 -0.136 0.405ZM-0.724 0.405A0.43 0.43 0 1 1 0.136 0.405A0.43 0.43 0 1 1 -0.724 0.405ZM-0.906 -0.155A0.43 0.43 0 1 1 -0.046 -0.155A0.43 0.43 0 1 1 -0.906 -0.155ZM-0.45 0A0.45 0.45 0 1 1 0.45 0A0.45 0.45 0 1 1 -0.45 0Z' },
+  tree:    { name: '樹木', d: 'M0 -0.94L0.38 -0.4L0.2 -0.4L0.58 0.08L0.36 0.08L0.8 0.74L-0.8 0.74L-0.36 0.08L-0.58 0.08L-0.2 -0.4L-0.38 -0.4Z' },
+  cloud:   { name: '雲朵', d: 'M-0.84 0.2A0.32 0.32 0 1 1 -0.2 0.2A0.32 0.32 0 1 1 -0.84 0.2ZM-0.6 -0.12A0.48 0.48 0 1 1 0.36 -0.12A0.48 0.48 0 1 1 -0.6 -0.12ZM0.02 0.02A0.4 0.4 0 1 1 0.82 0.02A0.4 0.4 0 1 1 0.02 0.02ZM0.42 0.3A0.24 0.24 0 1 1 0.9 0.3A0.24 0.24 0 1 1 0.42 0.3ZM-0.92 0.36A0.22 0.22 0 1 1 -0.48 0.36A0.22 0.22 0 1 1 -0.92 0.36ZM-0.7 0.1L0.66 0.1L0.66 0.54L-0.7 0.54Z' },
+  leaf:    { name: '葉子', d: 'M-0.46 0.5C-0.78 -0.08 -0.16 -0.78 0.82 -0.84C0.78 0.08 0.34 0.62 -0.46 0.5ZM-0.4 0.46L-0.9 0.9L-0.82 0.97L-0.34 0.56Z' },
+  cat:     { name: '貓咪', d: 'M-0.78 -0.8L-0.38 -0.44C-0.13 -0.52 0.13 -0.52 0.38 -0.44L0.78 -0.8L0.84 0.1C0.9 0.62 0.44 0.88 0 0.88C-0.44 0.88 -0.9 0.62 -0.84 0.1Z' },
+  bird:    { name: '飛鳥', d: 'M-0.92 0.02L-0.64 -0.2C-0.52 -0.3 -0.36 -0.26 -0.3 -0.1C-0.25 -0.5 0 -0.82 0.45 -0.92C0.35 -0.68 0.38 -0.55 0.52 -0.5C0.48 -0.38 0.52 -0.26 0.66 -0.2C0.6 -0.1 0.64 0 0.8 0.04C0.86 0.2 0.9 0.34 0.94 0.5C0.7 0.5 0.5 0.46 0.34 0.4C0.1 0.68 -0.3 0.66 -0.52 0.38C-0.62 0.24 -0.74 0.12 -0.92 0.02Z' }
 };
 Object.values(STAMPS).forEach(s => { s.path = new Path2D(s.d); });
 const isStamp = k => k in STAMPS;
@@ -681,7 +796,11 @@ function addBrush(box, kind, iconHTML) {
 }
 const colorBox = $('#colorBrushes'), stampBox = $('#stampBrushes');
 addBrush(colorBox, 'solid', '<i class="swatch" style="--sw:var(--cur)"></i>');
-Object.keys(GRADS).forEach(k => addBrush(colorBox, k, `<i class="swatch" style="--sw:${GRADS[k].css}"></i>`));
+Object.keys(GRADS).forEach(k => {
+  const g = GRADS[k], sc = [g.stampStops[0], g.stampStops[2], g.stampStops[3]];
+  const dots = sc.map(c => `<svg class="patico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true" style="fill:${c}"><path d="${STAMPS[g.stamp].d}"/></svg>`).join('');
+  addBrush(colorBox, k, `<i class="swatch pat" style="--sw:${g.css}">${dots}</i>`);
+});
 Object.keys(STAMPS).forEach(k => addBrush(stampBox, k,
   `<svg class="stampico" viewBox="-1.06 -1.06 2.12 2.12" aria-hidden="true"><path d="${STAMPS[k].d}"/></svg>`));
 
@@ -696,39 +815,69 @@ function setBrush(k) {
   brush = k;
   Object.entries(brushBtns).forEach(([id, b]) => b.setAttribute('aria-pressed', id === k));
   $('#brushCur').textContent = brushName(k);
-  if (tool === 'eraser') setTool('pen'); else { updateHint(); updatePreview(); }
+  if (tool === 'eraser') setTool('pen'); else { applySize(); updateHint(); }
 }
 function updateHint() {
   const n = brushName(brush);
   const pen = isStamp(brush) ? `按住拖曳，沿著筆跡蓋出一排${n}，大小跟著粗細變。`
-            : GRADS[brush]   ? `按住拖曳，畫出會一路變色的${n}漸層線條。`
+            : GRADS[brush]   ? `按住拖曳，畫出會變色的${n}線條，線條裡面還有小印章。`
             : '按住滑鼠或觸控板拖曳，就能畫畫。';
   const fill = isStamp(brush) ? `點一下圖案的某一塊，鋪滿${n}圖案（大小跟著粗細）。`
-             : GRADS[brush]   ? `點一下圖案的某一塊，用${n}漸層填滿。`
+             : GRADS[brush]   ? `點一下圖案的某一塊，用${n}漸層填滿，上面還有小印章。`
              : '點一下圖案的某一塊，整塊一次塗滿。';
   $('#hint').textContent = { pen, eraser: '按住拖曳，把顏色擦掉。', fill }[tool];
 }
+// which size the slider / round buttons currently edit: the open panel decides (印章 -> stamp size, 筆刷 -> line width, eraser -> eraser)
+function controlCtx() {
+  const p = document.body.dataset.panel;
+  return p === 'eraser' ? 'eraser' : p === 'stamp' ? 'stamp' : p === 'brush' ? 'pen' : drawCtx();
+}
+// which size the canvas actually draws with right now
+function drawCtx() { return tool === 'eraser' ? 'eraser' : isStamp(brush) ? 'stamp' : 'pen'; }
+function refreshSizeUI() {
+  const c = controlCtx(), v = sizes[c];
+  $('#size').value = v;
+  document.querySelectorAll('#sizePresets .szbtn').forEach((b, i) => b.setAttribute('aria-pressed', SIZE_SETS[c][i] === v));
+}
+function applySize() { size = sizes[drawCtx()]; refreshSizeUI(); updatePreview(); }
 // the little preview beside the slider shows what the current brush looks like
 function updatePreview() {
-  const dot = $('#sizeDot'), sv = $('#sizeStamp'), d = 8 + size * 0.5;
-  const stamp = tool !== 'eraser' && isStamp(brush), grad = tool !== 'eraser' && GRADS[brush];
+  const c = controlCtx(), v = sizes[c];
+  const dot = $('#sizeDot'), sv = $('#sizeStamp'), d = 8 + v * 0.5;
+  const stamp = c === 'stamp' && isStamp(brush), grad = c === 'pen' && GRADS[brush];
   dot.style.display = stamp ? 'none' : 'block';
   sv.style.display = stamp ? 'block' : 'none';
   dot.style.width = dot.style.height = sv.style.width = sv.style.height = d + 'px';
-  dot.style.background = grad ? grad.css : color;
+  dot.style.background = grad ? grad.css : (c === 'eraser' ? '#c4cbe4' : color);
   if (stamp) $('#sizeStampPath').setAttribute('d', STAMPS[brush].d);
 }
 function setTool(t) {
   tool = t;
   document.querySelectorAll('.tool').forEach(b => b.setAttribute('aria-pressed', b.dataset.tool === t));
   $('#brushSec').classList.toggle('off', t === 'eraser');
+  syncPanel();
   stage.style.cursor = t === 'fill' ? 'pointer' : 'none';
   if (t === 'fill') ring.style.display = 'none';
-  updateHint(); updatePreview();
+  applySize(); updateHint();
 }
-document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
-$('#custom').addEventListener('input', e => setColor(e.target.value, false));
-$('#size').addEventListener('input', e => { size = +e.target.value; updatePreview(); });
+document.querySelectorAll('.tool').forEach(b => b.addEventListener('click', () => { sidePanel = null; setTool(b.dataset.tool); pickSheet.close(); }));   // a tool button always leaves the picture list
+document.querySelectorAll('#brushMode .mode').forEach(b => b.addEventListener('click', () => setTool(b.dataset.mode)));   // stays inside the 筆刷 panel
+// which rail button is "on" decides what the options column shows (wide layout): the picture list, or the selected tool's options
+let sidePanel = null;                  // wide layout: 'brush' | 'stamp' while one of those rail buttons is open, otherwise null
+function syncPanel() {
+  const picking = !$('#pickBody').hidden;
+  const panel = picking ? 'pick' : (sidePanel || tool);
+  document.body.dataset.panel = panel;
+  $('#railPick').setAttribute('aria-pressed', picking);
+  $('#railBrush').setAttribute('aria-pressed', panel === 'brush');
+  $('#railStamp').setAttribute('aria-pressed', panel === 'stamp');
+  document.querySelectorAll('#brushMode .mode').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === tool));
+  refreshSizeUI(); updatePreview();
+  $('#sizeH').textContent = panel === 'eraser' ? '橡皮擦大小' : panel === 'stamp' ? '印章大小' : panel === 'brush' ? '粗細' : '粗細 · 印章大小';
+}
+$('#custom').addEventListener('input', e => { setColor(e.target.value, false); if (GRADS[brush]) setBrush('solid'); });
+$('#size').addEventListener('input', e => { sizes[controlCtx()] = +e.target.value; applySize(); });
+document.querySelectorAll('#sizePresets .szbtn').forEach((b, i) => b.addEventListener('click', () => { sizes[controlCtx()] = SIZE_SETS[controlCtx()][i]; applySize(); }));
 
 /* ---------- undo / clear ---------- */
 const redoStack = [];                  // snapshots we stepped back from, so 「下一步」 can bring them back
@@ -775,6 +924,38 @@ let walkPrev = null, segStart = null, segLen = 0;   // gradient pen: current seg
 let stampCarry = 0;                    // stamp pen: distance walked since the last stamp
 let gradDist = 0;                      // distance along the gradient; continues from stroke to stroke
 let stampSize = 0, stampGap = 0;       // fixed for the whole stroke
+let patSize = 0, patToNext = 0, patLen = 0, patStart = 0, patQueue = [];   // pattern line: stamps scattered inside the gradient line
+
+// one watercolour-ish stamp (slightly see-through, tilted) in the given colour
+function patStamp(ctx, kind, x, y, dia, rot, col) {
+  ctx.save();
+  ctx.globalAlpha = 0.92; ctx.translate(x, y); ctx.rotate(rot);
+  drawStamp(ctx, kind, 0, 0, dia, col);
+  ctx.restore();
+}
+const patGap = g => patSize * g.look[1] * (1.3 + Math.random() * 1.5);
+function walkPat(a, b) {
+  const l = Math.hypot(b.x - a.x, b.y - a.y);
+  if (!l) return;
+  const g = GRADS[kind], nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l;
+  let pos = 0;
+  while (patToNext <= l - pos) {
+    pos += patToNext;
+    const t = pos / l, d = patSize * (0.6 + Math.random() * 0.5);
+    const off = (Math.random() - 0.5) * Math.max(0, size - d) * 0.8;     // wander a little across the line
+    patQueue.push({ x: a.x + (b.x - a.x) * t + nx * off, y: a.y + (b.y - a.y) * t + ny * off, s: patLen + pos, d, rot: (Math.random() - 0.5) * 0.9 });
+    patToNext = patGap(g);
+  }
+  patToNext -= (l - pos); patLen += l;
+}
+// draw the queued stamps the line head has moved far enough past (the next segment's round cap reaches size/2 back); all = stroke over
+function flushPat(all) {
+  const g = GRADS[kind], safe = patLen - (size * 0.8 + 2);
+  while (patQueue.length && (all || patQueue[0].s <= safe)) {
+    const q = patQueue.shift();
+    patStamp(pctx, g.stamp, q.x, q.y, q.d, q.rot, gradColor(g, patStart + q.s, g.srgb));   // stamp colour follows the line's colour
+  }
+}
 
 const GRAD_SEG = 8;                    // gradient pen draws one linear-gradient segment per ~8px of path
 
@@ -787,6 +968,7 @@ function startStroke(p) {
     drawStamp(pctx, kind, p.x, p.y, stampSize, color);
   } else if (GRADS[kind]) {
     segStart = walkPrev = p; segLen = 0;
+    if (GRADS[kind].stamp) { patSize = Math.max(5, size * 0.7 * GRADS[kind].look[0]); patToNext = patGap(GRADS[kind]) / 2; patLen = 0; patStart = gradDist; patQueue = []; }
     pctx.fillStyle = gradColor(GRADS[kind], gradDist);
     pctx.beginPath(); pctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2); pctx.fill();
   } else {
@@ -816,9 +998,11 @@ function gradSegment(a, b) {
   pctx.strokeStyle = lg;
   pctx.beginPath(); pctx.moveTo(a.x, a.y); pctx.lineTo(b.x, b.y); pctx.stroke();
   gradDist += l;
+  if (g.stamp) flushPat(false);
 }
 function walkGrad(a, b) {
   segLen += Math.hypot(b.x - a.x, b.y - a.y);
+  if (GRADS[kind].stamp) walkPat(a, b);
   if (segLen >= GRAD_SEG) { gradSegment(segStart, b); segStart = b; segLen = 0; }
 }
 
@@ -842,7 +1026,7 @@ function extendStroke(p) {
 }
 function finishStroke() {
   if (drawing && isStamp(kind)) walkStamp(walkPrev, last);          // carry on to where the pointer really ended
-  else if (drawing && GRADS[kind]) { walkGrad(walkPrev, last); if (segLen > 0) gradSegment(segStart, last); }
+  else if (drawing && GRADS[kind]) { walkGrad(walkPrev, last); if (segLen > 0) gradSegment(segStart, last); if (GRADS[kind].stamp) flushPat(true); }
   drawing = false;
 }
 
@@ -897,6 +1081,18 @@ function paintRegion(seen, bb) {
     const g = GRADS[brush], lg = fxCtx.createLinearGradient(bb.x0, bb.y0, bb.x0 + Math.max(w, 1), bb.y0 + Math.max(h, 1));
     g.stops.forEach((c, i) => lg.addColorStop(i / (g.stops.length - 1), c));
     fxCtx.fillStyle = lg; fxCtx.fillRect(bb.x0, bb.y0, w, h);
+    if (g.stamp) {                       // pattern line: tone-on-tone stamps in loose offset rows on top of the gradient
+      const dia = stampDia() * 0.8 * g.look[0], stepX = Math.max(14, dia * 2.1 * Math.max(0.7, g.look[1] + 0.35)), stepY = stepX * 0.85;
+      let row = Math.floor(bb.y0 / stepY) - 1;
+      for (let y = row * stepY; y <= bb.y1 + stepY; y += stepY, row++) {
+        const off = (row & 1) ? stepX / 2 : 0;
+        for (let x = Math.floor(bb.x0 / stepX) * stepX - stepX + off; x <= bb.x1 + stepX; x += stepX) {
+          const jx = x + (Math.random() - 0.5) * stepX * 0.5, jy = y + (Math.random() - 0.5) * stepY * 0.5;
+          const tt = ((jx - bb.x0) + (jy - bb.y0)) / Math.max(1, w + h);
+          patStamp(fxCtx, g.stamp, jx, jy, dia * (0.6 + Math.random() * 0.5), (Math.random() - 0.5) * 0.9, stopColor(g.srgb, tt));
+        }
+      }
+    }
   } else {                               // stamp pattern: pale tint of the colour + offset rows of stamps
     fxCtx.fillStyle = mixWhite(color, 0.8); fxCtx.fillRect(bb.x0, bb.y0, w, h);
     const dia = stampDia(), stepX = dia * 1.45, stepY = stepX * 0.9;
@@ -1008,11 +1204,13 @@ function makeSheet(toggle, body) {
       toggle.setAttribute('aria-expanded', 'true');
       body.hidden = false;
       sheetBackdrop.hidden = false;
+      syncPanel();
     },
     close() {
       toggle.setAttribute('aria-expanded', 'false');
       body.hidden = true;
       if (sheets.every(s => s.body.hidden)) sheetBackdrop.hidden = true;
+      syncPanel();
     }
   };
   toggle.addEventListener('click', () => body.hidden ? entry.open() : entry.close());
@@ -1023,6 +1221,13 @@ function setPickOpen(open) { open ? pickSheet.open() : pickSheet.close(); }   //
 const pickSheet = makeSheet($('#pickToggle'), $('#pickBody'));
 const brushSheet = makeSheet($('#brushToggle'), $('#brushBody'));
 const colorSheet = makeSheet($('#colorToggle'), $('#colorBody'));
+$('#railPick').addEventListener('click', () => { sidePanel = null; pickSheet.body.hidden ? pickSheet.open() : pickSheet.close(); });
+// 筆刷 / 印章 rail buttons: show that list in the options column (press again to go back to the tool's own options)
+[['railBrush', 'brush'], ['railStamp', 'stamp']].forEach(([id, name]) => $('#' + id).addEventListener('click', () => {
+  sidePanel = sidePanel === name ? null : name;
+  pickSheet.close();                    // also re-syncs the panel
+  syncPanel();
+}));
 // each sheet's own title bar (pinned to its top) closes it too, same as tapping the backdrop
 $('#pickSheetClose').addEventListener('click', () => pickSheet.close());
 $('#brushSheetClose').addEventListener('click', () => brushSheet.close());
