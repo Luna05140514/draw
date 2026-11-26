@@ -213,84 +213,58 @@ header p{margin:0;color:var(--muted);font-size:15px}
   .cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
   .cat{flex:none}
 }
-/* ===== phone portrait: the whole app fits the screen, nothing scrolls but the page itself never does —
-   tool/brush/colour panels collapse into compact bars and open as bottom sheets when tapped ===== */
+/* ===== phone portrait: same idea as the wide layout, stacked — canvas on top, then a 4-column grid of tool buttons
+   (picture / brush / stamp / bucket / eraser / crayon / undo / clear), then the options of the selected button.
+   The page scrolls normally. ===== */
 @media (max-width:639px), (max-width:699px) and (max-aspect-ratio:1/1){
-  html,body{height:100%;overflow:hidden}
-  body{height:100vh;height:100dvh;display:flex;flex-direction:column}
-  header{flex:none;padding:10px 16px 4px;gap:2px 10px}
-  header h1{font-size:19px}
+  header{padding:12px 16px 2px;gap:2px 10px}
+  header h1{font-size:22px}
   header p{display:none}
-
-  .layout{display:flex;flex-direction:column;align-items:stretch;flex:1;min-height:0;width:100%;max-width:none;margin:0;padding:8px 12px calc(10px + env(safe-area-inset-bottom));gap:8px}
-  .tools,.right{flex:none;padding:10px}
-  .panel.tools h2,.panel.right h2{display:none}
-  .panel section+section{margin-top:8px}
-  .stagewrap{order:1}
-  .tools{order:2}
-  .right{order:3}
-
-  .stagewrap{flex:1;min-height:0;container-type:size;gap:6px}
+  .layout{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:none;margin:0;padding:8px 12px calc(22px + env(safe-area-inset-bottom));gap:12px}
+  .tools,.right{display:none}
+  .stagewrap{order:1;gap:8px}
+  .dock{order:2}
   .bar{width:100%}
-  .bar .act{padding:9px 4px;font-size:13px}
-  .stage{width:min(100%,calc(100dvh - 240px));box-shadow:0 0 0 4px var(--panel),0 7px 0 4px var(--shadow)}
-  @supports (width:1cqw){ .stage{width:min(100cqw - 4px,100cqh - 56px)} }
-  .hint{display:none}
+  .bar .act{padding:10px 4px;font-size:13.5px}
+  .stage{width:100%;box-shadow:0 0 0 4px var(--panel),0 7px 0 4px var(--shadow)}
+  .hint{display:block;font-size:13px}
 
-  /* compact icon row: pen / eraser / bucket */
-  .tools-row{gap:8px}
-  .tool{padding:7px 2px 6px;font-size:11px;gap:1px;border-width:2.5px}
-  .tool .ico{font-size:21px}
-
-  /* 筆刷種類 + 顏色 become one-line dropdown triggers that open as bottom sheets.
-     The triggers themselves stay put in the page (never floated above a sheet, so they can never
-     cover its content); closing an open sheet instead happens via its own .sheet-close title bar
-     (pinned to the very top of the sheet, see below), the dimmed backdrop, or Escape. */
-  .pickhead.drop-head{display:flex}
-  .pickhead{padding:9px 12px;font-size:13.5px}
-  .pt{display:flex;align-items:center;gap:5px}
-  .cur-swatch{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--cur);box-shadow:inset 0 0 0 2px rgba(0,0,0,.14)}
-
-  .size-row{gap:10px}
-  .size-presets{display:none}            /* phone: the slider alone, to keep everything on one screen */
-  .size-preview{width:42px;height:42px}
-
-  /* the tools panel's own 復原/全部擦掉 row is dropped — those actions live in the top bar instead */
-  .tools .acts{display:none}
-  #clearPhone{display:flex}
-
-  /* picture picker / brush / colour panels become bottom sheets instead of pushing the page */
-  #pickBody[hidden],#brushBody[hidden],#colorBody[hidden]{display:none}
-  #pickBody,#brushBody,#colorBody{
-    position:fixed;left:0;right:0;bottom:0;z-index:31;max-height:72vh;overflow:auto;margin-top:0;
-    background:var(--panel);border-radius:22px 22px 0 0;box-shadow:0 -10px 34px rgba(20,26,60,.30);
-    padding:22px 16px calc(16px + env(safe-area-inset-bottom));
-    animation:sheetUp .22s ease;
-  }
-  #pickBody::before,#brushBody::before,#colorBody::before{
-    content:"";position:absolute;left:50%;top:9px;width:40px;height:5px;border-radius:3px;
-    background:var(--line);transform:translateX(-50%);
-  }
-  /* title bar pinned to the very top of each open sheet — tapping it closes the sheet, same as
-     tapping the dimmed backdrop. Always first, so it never drifts down over the sheet's own grid. */
-  .sheet-close{
-    display:flex;align-items:center;justify-content:space-between;gap:8px;
-    width:100%;margin:0 0 14px;padding:0 0 12px;position:sticky;top:0;
-    border:none;border-bottom:2px solid var(--line);background:var(--panel);
-    font:inherit;font-weight:700;font-size:15.5px;color:var(--ink);
-  }
-  .sheet-close .chev{flex:none;font-size:13px;color:var(--muted)}
-  @keyframes sheetUp{ from{ transform:translateY(100%) } to{ transform:translateY(0) } }
-  .sheet-backdrop{position:fixed;inset:0;background:rgba(20,26,60,.42);z-index:30}
-  .sheet-backdrop[hidden]{display:none}
-  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);max-height:none;overflow:visible;padding-bottom:2px}
+  .layout>.dock{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px}
+  .rail>section,.rail .tools-row,.rail .acts{display:contents}
+  .rail h2{display:none}
+  .rail .tool,.rail .railbtn,.rail .act{width:100%;margin:0}
+  .rail .tool,.rail .railbtn{padding:8px 2px 6px;font-size:13px;gap:2px;border-width:2.5px}
+  .rail .tool .ico,.rail .railbtn .ico{font-size:24px}
+  .rail .pbrush{width:1.3em;height:1.3em;margin:0 auto}
+  .rail .act{white-space:normal;line-height:1.2;padding:8px 2px;font-size:12.5px}
+  .rail #railPick{order:1}.rail #railBrush{order:2}.rail #railStamp{order:3}
+  .rail .tool[data-tool="fill"]{order:4}.rail .tool[data-tool="eraser"]{order:5}.rail .tool[data-tool="pen"]{order:6}
+  .rail #undo{order:7}.rail #clear{order:8}
+  .rail{order:1}
+  .opts{order:2;width:auto;display:flex;flex-direction:column;gap:12px;min-width:0;padding:14px}
+  .crayons{grid-template-columns:repeat(8,minmax(0,1fr));gap:9px 6px;max-width:none}
+  .panel.opts>section{margin:0}
+  .brush-mode{display:block}
+  /* only the options that belong to the selected button show (JS keeps body[data-panel] up to date) */
+  #secColor,#brushSec,#stampSec,#secSize,#secPick{display:none}
+  body[data-panel="pen"] #secColor,body[data-panel="pen"] #secSize,
+  body[data-panel="fill"] #secColor,
+  body[data-panel="eraser"] #secSize,
+  body[data-panel="brush"] #brushSec,body[data-panel="brush"] #secSize,
+  body[data-panel="stamp"] #stampSec,body[data-panel="stamp"] #secSize,body[data-panel="stamp"] #secColor,
+  body[data-panel="pick"] #secPick{display:block}
+  #secColor{order:1}#brushSec,#stampSec{order:2}#secSize{order:3}#secPick{order:4}
+  body[data-panel="stamp"] #secColor{order:5}
+  #stampSec .brush-cap{display:none}
+  #stampSec .brush-mode .brush-cap{display:block}
+  .rail .railbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);font-weight:700}
+  body[data-panel="pick"] .rail .tool[aria-pressed="true"],body[data-panel="brush"] .rail .tool[aria-pressed="true"],body[data-panel="stamp"] .rail .tool[aria-pressed="true"]{background:var(--panel);font-weight:400}
+  .thumbs{display:grid;grid-template-columns:repeat(3,1fr);max-height:none;overflow:visible;padding:2px}
   .thumb{flex:none}
   .cats{flex-wrap:wrap;overflow:visible}
   .brushes{grid-template-columns:repeat(3,1fr)}
-}
-@media (max-width:639px) and (min-height:640px), (max-width:699px) and (max-aspect-ratio:1/1) and (min-height:640px){
-  .stage{width:min(100%,calc(100dvh - 210px))}
-  @supports (width:1cqw){ .stage{width:min(100cqw - 4px,100cqh - 50px)} }
+  .sheet-backdrop,.sheet-backdrop[hidden]{display:none}
 }
 /* ===== every screen that is not a phone: tools live on the RIGHT, in two columns =====
    far right  = the tool rail (picture picker, crayon, eraser, paint bucket, undo / clear)
@@ -584,18 +558,11 @@ const $ = s => document.querySelector(s);
 const phoneMQ = matchMedia('(max-width:639px), (max-width:699px) and (max-aspect-ratio:1/1)');
 function placeSections() {
   const put = (parent, ids) => ids.forEach(id => parent.appendChild($('#' + id)));
-  if (phoneMQ.matches) {
-    put($('#toolsPanel'), ['secTools', 'brushSec', 'secSize', 'secActs']);
-    put($('#rightPanel'), ['secPick', 'secColor']);
-    put($('#brushBody'), ['stampGroup']);               // phone: line kinds + stamps share the one brush sheet
-  } else {
-    put($('#optsPanel'), ['secColor', 'brushSec', 'stampSec', 'secSize', 'secPick']);
-    put($('#stampSec'), ['stampGroup']);
-    put($('#railPanel'), ['secRailStyle', 'secTools', 'secActs']);
-  }
+  put($('#optsPanel'), ['secColor', 'brushSec', 'stampSec', 'secSize', 'secPick']);
+  put($('#stampSec'), ['stampGroup']);
+  put($('#railPanel'), ['secRailStyle', 'secTools', 'secActs']);
 }
 placeSections();
-phoneMQ.addEventListener('change', placeSections);
 
 /* ---------- drawing helpers (coordinates are 0–100) ---------- */
 const E = (cx, cy, rx, ry, rot = 0) => { const p = new Path2D(); p.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2); return p; };
@@ -922,7 +889,7 @@ function setBrush(k) {
 }
 function updateHint() {
   const n = brushName(brush);
-  const once = !phoneMQ.matches;
+  const once = true;
   const pen = isStamp(brush) ? (once ? `點一下，在那裡蓋一個${n}，大小跟著印章大小變。` : `按住拖曳，沿著筆跡蓋出一排${n}，大小跟著粗細變。`)
             : GRADS[brush]   ? `按住拖曳，畫出會變色的${n}線條${GRADS[brush].pat ? '，線條裡面還有小圖案' : ''}。`
             : '按住滑鼠或觸控板拖曳，就能畫畫。';
@@ -1076,7 +1043,7 @@ const GRAD_SEG = 8;                    // gradient pen draws one linear-gradient
 function startStroke(p) {
   brushStyle();
   kind = tool === 'eraser' ? 'eraser' : brush;
-  onceStroke = !phoneMQ.matches;
+  onceStroke = true;
   if (isStamp(kind)) {
     stampSize = stampDia(); stampGap = stampSize * 1.2;   // even spacing, small gap between stamps
     stampCarry = 0; walkPrev = p;
